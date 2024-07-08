@@ -1,14 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
-
+	"github.com/go-chi/chi/v5"
 	"github.com/PerfectStepCoder/shorturl/internal/handlers"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-resty/resty/v2"
 )
 
 func TestShorterURL(t *testing.T) {
@@ -25,19 +27,25 @@ func TestShorterURL(t *testing.T) {
 
 	inMemoryStorage := storage.NewStorage(10);
 	targetHandler := handlers.ShorterURL(inMemoryStorage)
-
+	
+	srv := httptest.NewServer(targetHandler)
+	defer srv.Close()
+	
     for _, tc := range testCases {
 
         t.Run(tc.method, func(t *testing.T) {
 
-            r := httptest.NewRequest(tc.method, "/", strings.NewReader(tc.body))
-            w := httptest.NewRecorder()
- 
-			targetHandler(w, r)
+			req := resty.New().R()
+            req.Method = tc.method
+			req.SetBody(tc.body)
+            req.URL = srv.URL
 
-            assert.Equal(t, tc.expectedCode, w.Code, "Код ответа не совпадает с ожидаемым")
+            resp, err := req.Send()
+            assert.NoError(t, err, "error making HTTP request")
 
-			assert.Equal(t, tc.expectedBody, w.Body.String(), "Тело ответа не совпадает с ожидаемым")
+            assert.Equal(t, tc.expectedCode, resp.StatusCode(), "Код ответа не совпадает с ожидаемым")
+
+			assert.Equal(t, tc.expectedBody, string(resp.Body()), "Тело ответа не совпадает с ожидаемым")
         })
     }
 }
@@ -55,24 +63,28 @@ func TestGetURL(t *testing.T) {
         expectedCode int
         expectedBody string
     }{
-        {method: http.MethodGet, body: "", expectedCode: http.StatusTemporaryRedirect, path: "/" + shortString, expectedBody: ""},
-		{method: http.MethodGet, body: "", expectedCode: http.StatusNotFound, path: "/" + "NotExist", expectedBody: ""},
+        {method: http.MethodGet, body: "", expectedCode: http.StatusOK, path: shortString, expectedBody: ""},
+		{method: http.MethodGet, body: "", expectedCode: http.StatusNotFound, path: "NotExist", expectedBody: ""},
     }
 
-	targetHandler := handlers.GetURL(inMemoryStorage)
+	routes := chi.NewRouter()
+	routes.Get("/{id}", handlers.GetURL(inMemoryStorage))
+	srv := httptest.NewServer(routes)
+
+	defer srv.Close()
 
     for _, tc := range testCases {
 
         t.Run(tc.method, func(t *testing.T) {
 
-            r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
-			r.SetPathValue("id", tc.path[1:])
+			req := resty.New().R()
+            req.Method = tc.method
 
-            w := httptest.NewRecorder()
- 
-			targetHandler(w, r)
+			fmt.Print(srv.URL + "/" + tc.path + "\n")
+			resp, err := req.Get(srv.URL + "/" + tc.path)
+            assert.NoError(t, err, "error making HTTP request")
 
-            assert.Equal(t, tc.expectedCode, w.Code, "Код ответа не совпадает с ожидаемым")
+            assert.Equal(t, tc.expectedCode, resp.StatusCode(), "Код ответа не совпадает с ожидаемым")
 
         })
     }

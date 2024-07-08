@@ -5,7 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-
+	"github.com/go-chi/chi/v5"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 )
 
@@ -30,7 +30,7 @@ func ShorterURL(storage *storage.Storage) http.HandlerFunc {
 
 func GetURL(storage *storage.Storage) http.HandlerFunc {
 	return func (res http.ResponseWriter, req *http.Request) {
-		shortURL := req.PathValue("id")
+		shortURL := chi.URLParam(req, "id")
 		if shortURL == "" {
 			http.Error(res, "ShortURL not send", http.StatusBadRequest)
 			return
