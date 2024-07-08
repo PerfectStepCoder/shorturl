@@ -18,7 +18,7 @@ func main() {
 	mux.HandleFunc("POST /", handlers.ShorterURL(inMemoryStorage))
 	mux.HandleFunc("GET /{id}", handlers.GetURL(inMemoryStorage))
 
-	PORT := 8080
+	PORT := 8081
 	fmt.Printf("Service is starting ... on port: %d\n", PORT)
 	err := http.ListenAndServe(fmt.Sprintf(`:%d`, PORT), mux)
 	if err != nil {

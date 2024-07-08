@@ -34,3 +34,11 @@ git fetch template && git checkout template/main .github
 # Разное
 ### Запуск линтера
 > /Users/dmitrii/go/bin/golangci-lint run
+
+### Зависимости
+Установит зависимости найденные в коде проекта
+> go mod tidy
+
+### Запуск тестов
+> go test -v cmd/shortener/main_test.go
+
