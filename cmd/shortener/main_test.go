@@ -26,7 +26,7 @@ func TestShorterURL(t *testing.T) {
     }
 
 	inMemoryStorage := storage.NewStorage(10);
-	targetHandler := handlers.ShorterURL(inMemoryStorage)
+	targetHandler := handlers.ShorterURL(inMemoryStorage, "http://localhost:8080")
 	
 	srv := httptest.NewServer(targetHandler)
 	defer srv.Close()

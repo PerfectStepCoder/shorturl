@@ -10,7 +10,7 @@ import (
 )
 
 
-func ShorterURL(storage *storage.Storage) http.HandlerFunc {
+func ShorterURL(storage *storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		originURLbytes, _ := io.ReadAll(req.Body)
 		originURL := string(originURLbytes)
@@ -19,7 +19,7 @@ func ShorterURL(storage *storage.Storage) http.HandlerFunc {
 			return
 		}
 		shortURL := storage.Save(originURL)
-		shortURLfull := fmt.Sprintf("%s/%s", "http://localhost:8080", shortURL) 
+		shortURLfull := fmt.Sprintf("%s/%s", baseURL, shortURL) 
 		res.WriteHeader(http.StatusCreated)
 		res.Header().Set("content-type", "text/plain")
 		if _, err := res.Write([]byte(shortURLfull)); err != nil {
