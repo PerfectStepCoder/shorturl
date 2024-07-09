@@ -19,7 +19,7 @@ func main() {
 	inMemoryStorage = storage.NewStorage(10);
 	routes := chi.NewRouter()
 
-	routes.Post("/", handlers.ShorterURL(inMemoryStorage, appSettings.BaseUrl))
+	routes.Post("/", handlers.ShorterURL(inMemoryStorage, appSettings.BaseURL))
     routes.Get("/{id}", handlers.GetURL(inMemoryStorage))
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
