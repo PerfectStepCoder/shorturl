@@ -6,14 +6,13 @@ import (
 	"strings"
 )
 
-
 type NetAddress struct {
 	Host string
 	Port int
 }
 
 func (a NetAddress) String() string {
-    return a.Host + ":" + strconv.Itoa(a.Port)
+	return a.Host + ":" + strconv.Itoa(a.Port)
 }
 
 func (a *NetAddress) Set(s string) error {
@@ -23,16 +22,16 @@ func (a *NetAddress) Set(s string) error {
 			return errors.New("need address in a form host:port")
 		}
 		port, err := strconv.Atoi(hp[1])
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		a.Host = hp[0]
-		a.Port = port	
+		a.Port = port
 	}
 	return nil
-} 
+}
 
 type Settings struct {
 	ServiceNetAddress NetAddress
-	BaseURL string
+	BaseURL           string
 }

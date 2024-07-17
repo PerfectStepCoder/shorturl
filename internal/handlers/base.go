@@ -5,21 +5,26 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"github.com/go-chi/chi/v5"
+
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"github.com/go-chi/chi/v5"
 )
 
-
-func ShorterURL(storage *storage.Storage, baseURL string) http.HandlerFunc {
+func ShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		originURLbytes, _ := io.ReadAll(req.Body)
+		defer func() {
+			if err := req.Body.Close(); err != nil {
+				log.Printf("could not close response body: %v", err)
+			}
+		}()
 		originURL := string(originURLbytes)
 		if originURL == "" {
 			http.Error(res, "URL not send", http.StatusBadRequest)
 			return
 		}
 		shortURL := storage.Save(originURL)
-		shortURLfull := fmt.Sprintf("%s/%s", baseURL, shortURL) 
+		shortURLfull := fmt.Sprintf("%s/%s", baseURL, shortURL)
 		res.WriteHeader(http.StatusCreated)
 		res.Header().Set("content-type", "text/plain")
 		if _, err := res.Write([]byte(shortURLfull)); err != nil {
@@ -28,8 +33,8 @@ func ShorterURL(storage *storage.Storage, baseURL string) http.HandlerFunc {
 	}
 }
 
-func GetURL(storage *storage.Storage) http.HandlerFunc {
-	return func (res http.ResponseWriter, req *http.Request) {
+func GetURL(storage storage.Storage) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
 		shortURL := chi.URLParam(req, "id")
 		if shortURL == "" {
 			http.Error(res, "ShortURL not send", http.StatusBadRequest)
@@ -44,4 +49,3 @@ func GetURL(storage *storage.Storage) http.HandlerFunc {
 		res.WriteHeader(http.StatusTemporaryRedirect)
 	}
 }
-

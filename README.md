@@ -44,3 +44,9 @@ git fetch template && git checkout template/main .github
 
 ### Запуск с флагами
 > go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://0.0.0.0:9999
+
+### Форматирование кода
+> gofmt -s -w .
+-s simplifies the code
+-w writes results directly
+
