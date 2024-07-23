@@ -29,7 +29,7 @@ func ParseFlags() Settings {
 	appSettings.ServiceNetAddress.Port = 0
 	baseURL := "http://localhost:8080"
 
-	if envRunAddr := os.Getenv("SERVER_ADDRESS"); envRunAddr != "" {
+	if envRunAddr := os.Getenv("SHORTURL_SERVER_ADDRESS"); envRunAddr != "" {
 		host, port, err := splitHostPort(envRunAddr)
 		if err == nil {
 			appSettings.ServiceNetAddress.Host = host
@@ -37,7 +37,7 @@ func ParseFlags() Settings {
 		}
 	}
 
-	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
+	if envBaseURL := os.Getenv("SHORTURL_BASE_URL"); envBaseURL != "" {
 		baseURL = envBaseURL
 	}
 

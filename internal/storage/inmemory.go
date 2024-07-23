@@ -7,7 +7,7 @@ import (
 )
 
 type StorageInMemory struct {
-	mu sync.Mutex // синхронизация доступа к хранилищу
+	mu             sync.Mutex // синхронизация доступа к хранилищу
 	data           map[string]string
 	lengthShortURL int
 }
