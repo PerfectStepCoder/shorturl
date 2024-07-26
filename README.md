@@ -50,3 +50,5 @@ git fetch template && git checkout template/main .github
 -s simplifies the code
 -w writes results directly
 
+### Проверка стуктурных тегов
+> go vet -structtag
