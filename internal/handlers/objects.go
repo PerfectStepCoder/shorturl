@@ -31,7 +31,7 @@ func ObjectShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc 
 			Result: fmt.Sprintf("%s/%s", baseURL, shortURL),
 		}
 
-		res.Header().Set("content-type", "application/json")
+		res.Header().Set("Content-Type", "application/json")
 		res.WriteHeader(http.StatusCreated)
 
 		// Cериализуем ответ сервера

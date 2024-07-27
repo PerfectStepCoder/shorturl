@@ -25,9 +25,9 @@ func main() {
 	inMemoryStorage = storage.NewStorage(lengthShortURL)
 	routes := chi.NewRouter()
 
-	routes.Post("/", hdl.WithLogging(hdl.ShorterURL(inMemoryStorage, appSettings.BaseURL), logger))
-	routes.Get("/{id}", hdl.WithLogging(hdl.GetURL(inMemoryStorage), logger))
-	routes.Post("/api/shorten", hdl.ObjectShorterURL(inMemoryStorage, appSettings.BaseURL))
+	routes.Post("/", hdl.GzipCompress(hdl.WithLogging(hdl.ShorterURL(inMemoryStorage, appSettings.BaseURL), logger)))
+	routes.Get("/{id}", hdl.GzipCompress(hdl.WithLogging(hdl.GetURL(inMemoryStorage), logger)))
+	routes.Post("/api/shorten", hdl.GzipCompress(hdl.ObjectShorterURL(inMemoryStorage, appSettings.BaseURL)))
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
 		appSettings.ServiceNetAddress.Port)
