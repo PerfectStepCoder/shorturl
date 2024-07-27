@@ -27,6 +27,7 @@ func main() {
 
 	routes.Post("/", hdl.WithLogging(hdl.ShorterURL(inMemoryStorage, appSettings.BaseURL), logger))
 	routes.Get("/{id}", hdl.WithLogging(hdl.GetURL(inMemoryStorage), logger))
+	routes.Post("/api/shorten", hdl.ObjectShorterURL(inMemoryStorage, appSettings.BaseURL))
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
 		appSettings.ServiceNetAddress.Port)
