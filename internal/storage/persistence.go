@@ -6,7 +6,7 @@ import (
 )
 
 type ShortURL struct {
-	Uuid        uint   `json:"uuid"`
+	UUID        uint   `json:"uuid"`
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
