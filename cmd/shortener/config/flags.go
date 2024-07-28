@@ -39,7 +39,7 @@ func ParseFlags() Settings {
 	if envBaseURL := os.Getenv("SHORTURL_BASE_URL"); envBaseURL != "" {
 		appSettings.BaseURL = envBaseURL
 	}
-	if envFileStoragePath := os.Getenv("SHORTURL_FILE_STORAGE_PATH"); envFileStoragePath != "" {
+	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
 		appSettings.FileStoragePath = envFileStoragePath
 	}
 	if envRunAddr := os.Getenv("SHORTURL_SERVER_ADDRESS"); envRunAddr != "" {
