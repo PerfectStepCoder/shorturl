@@ -66,7 +66,7 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 
 	for originURL, shortURL := range s.data {
 		newShortURL := ShortURL{
-			OriginalURL: originURL, ShortURL: shortURL,
+			Uuid: uint(count), OriginalURL: originURL, ShortURL: shortURL,
 		}
 		if err := producer.WriteShortURL(&newShortURL); err != nil {
 			log.Fatal(err)
