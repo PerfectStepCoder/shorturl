@@ -25,3 +25,5 @@ vendor/
 .DS_Store
 
 *.log
+
+*.data

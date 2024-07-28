@@ -3,6 +3,8 @@ package storage
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"io"
+	"log"
 	"sync"
 )
 
@@ -32,4 +34,44 @@ func (s *StorageInMemory) Get(hashKey string) (string, bool) {
 	defer s.mu.Unlock()
 	value, exists := s.data[hashKey]
 	return value, exists
+}
+
+func (s *StorageInMemory) LoadData(pathToFile string) int {
+	count := 0
+	consumer, err := NewConsumer(pathToFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer consumer.Close()
+	for {
+		shortURL, err := consumer.ReadShortURL()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+		}
+		s.data[shortURL.OriginalURL] = shortURL.ShortURL
+		count += 1
+	}
+	return count
+}
+
+func (s *StorageInMemory) SaveData(pathToFile string) int {
+	producer, err := NewProducer(pathToFile)
+	count := 0
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer producer.Close()
+
+	for originURL, shortURL := range s.data {
+		newShortURL := ShortURL{
+			OriginalURL: originURL, ShortURL: shortURL,
+		}
+		if err := producer.WriteShortURL(&newShortURL); err != nil {
+			log.Fatal(err)
+		}
+		count += 1
+	}
+	return count
 }

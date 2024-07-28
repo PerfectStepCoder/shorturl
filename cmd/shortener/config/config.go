@@ -34,4 +34,5 @@ func (a *NetAddress) Set(s string) error {
 type Settings struct {
 	ServiceNetAddress NetAddress
 	BaseURL           string
+	FileStoragePath   string
 }
