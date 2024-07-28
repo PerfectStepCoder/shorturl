@@ -63,7 +63,7 @@ func main() {
 	}()
 
 	fmt.Println("Server is running...")
-	fmt.Sprintf(`%s:%d`, appSettings.ServiceNetAddress.Host, appSettings.ServiceNetAddress.Port)
+	fmt.Printf(`%s:%d`, appSettings.ServiceNetAddress.Host, appSettings.ServiceNetAddress.Port)
 
 	// Ожидание сигнала завершения
 	<-done
