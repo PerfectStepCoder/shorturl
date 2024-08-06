@@ -30,3 +30,23 @@ git fetch template && git checkout template/main .github
 При мёрже ветки с инкрементом в основную ветку `main` будут запускаться все автотесты.
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
+
+# Разное
+### Запуск линтера
+> /Users/dmitrii/go/bin/golangci-lint run
+
+### Зависимости
+Установит зависимости найденные в коде проекта
+> go mod tidy
+
+### Запуск тестов
+> go test -v cmd/shortener/main_test.go
+
+### Запуск с флагами
+> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://0.0.0.0:9999
+
+### Форматирование кода
+> gofmt -s -w .
+-s simplifies the code
+-w writes results directly
+
