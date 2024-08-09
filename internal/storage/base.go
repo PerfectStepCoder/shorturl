@@ -5,4 +5,6 @@ package storage
 type Storage interface {
 	Save(value string) string
 	Get(hashKey string) (string, bool)
+	LoadData(pathToFile string) int
+	SaveData(pathToFile string) int
 }

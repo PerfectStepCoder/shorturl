@@ -31,7 +31,7 @@ git fetch template && git checkout template/main .github
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
 
-# Разное
+# Разное в проекте
 ### Запуск линтера
 > /Users/dmitrii/go/bin/golangci-lint run
 
@@ -50,3 +50,5 @@ git fetch template && git checkout template/main .github
 -s simplifies the code
 -w writes results directly
 
+### Проверка стуктурных тегов
+> go vet -structtag

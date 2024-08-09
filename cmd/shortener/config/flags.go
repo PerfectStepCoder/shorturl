@@ -28,22 +28,27 @@ func ParseFlags() Settings {
 	appSettings.ServiceNetAddress.Host = ""
 	appSettings.ServiceNetAddress.Port = 0
 	baseURL := "http://localhost:8080"
+	fileStoragePath := "shorturls.data"
 
-	if envRunAddr := os.Getenv("SERVER_ADDRESS"); envRunAddr != "" {
+	flag.Var(&appSettings.ServiceNetAddress, "a", "Net address host:port")
+	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")
+	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
+	flag.Parse()
+
+	// Если есть переменные окружения они переписывают настройки
+	if envBaseURL := os.Getenv("SHORTURL_BASE_URL"); envBaseURL != "" {
+		appSettings.BaseURL = envBaseURL
+	}
+	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
+		appSettings.FileStoragePath = envFileStoragePath
+	}
+	if envRunAddr := os.Getenv("SHORTURL_SERVER_ADDRESS"); envRunAddr != "" {
 		host, port, err := splitHostPort(envRunAddr)
 		if err == nil {
 			appSettings.ServiceNetAddress.Host = host
 			appSettings.ServiceNetAddress.Port = port
 		}
 	}
-
-	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
-		baseURL = envBaseURL
-	}
-
-	flag.Var(&appSettings.ServiceNetAddress, "a", "Net address host:port")
-	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")
-	flag.Parse()
 
 	if appSettings.ServiceNetAddress.Host == "" && appSettings.ServiceNetAddress.Port == 0 {
 		appSettings.ServiceNetAddress.Host = "localhost"

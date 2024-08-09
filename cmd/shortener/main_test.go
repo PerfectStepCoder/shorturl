@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/PerfectStepCoder/shorturl/internal/handlers"
@@ -106,6 +107,120 @@ func TestGetURL(t *testing.T) {
 			// Проверка кода ответа
 			if resp.StatusCode() != tc.expectedCode {
 				t.Errorf("Код ответа не совпадает с ожидаемым. Ожидалось: %d, Получено: %d", tc.expectedCode, resp.StatusCode())
+			}
+		})
+	}
+}
+
+func TestObjectsURL(t *testing.T) {
+
+	inMemoryStorage := storage.NewStorage(testLengthShortURL)
+	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
+	assert.Equal(t, shortString, "42b3e75f92")
+
+	testCases := []struct {
+		method       string
+		body         string
+		expectedCode int
+		expectedBody string
+	}{
+		{method: http.MethodPost, body: "{\"url\":\"https://practicum.yandex.ru/\"}", expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/42b3e75f92\"}"},
+		{method: http.MethodGet, body: "", expectedCode: http.StatusMethodNotAllowed, expectedBody: ""},
+	}
+
+	routes := chi.NewRouter()
+	routes.Post("/api/shorten", handlers.ObjectShorterURL(inMemoryStorage, testBaseURL))
+	srv := httptest.NewServer(routes)
+
+	defer srv.Close()
+
+	for _, tc := range testCases {
+
+		t.Run(tc.method, func(t *testing.T) {
+
+			// Отправка HTTP-запроса
+			req := resty.New().R()
+			req.Method = tc.method
+			req.URL = srv.URL + "/api/shorten"
+
+			if len(tc.body) > 0 {
+				req.SetHeader("Content-Type", "application/json")
+				req.SetBody(tc.body)
+			}
+
+			resp, err := req.Send()
+			assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+
+			// Проверка кода ответа
+			if resp.StatusCode() != tc.expectedCode {
+				t.Errorf("Код ответа не совпадает с ожидаемым. Ожидалось: %d, Получено: %d", tc.expectedCode, resp.StatusCode())
+			}
+
+			// Проверка содержимого теля запроса
+			if tc.expectedBody != "" {
+				assert.JSONEq(t, tc.expectedBody, string(resp.Body()))
+			}
+		})
+	}
+}
+
+func TestGzipCompression(t *testing.T) {
+
+	inMemoryStorage := storage.NewStorage(testLengthShortURL)
+	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
+	assert.Equal(t, shortString, "42b3e75f92")
+
+	testCases := []struct {
+		method       string
+		body         string
+		contentType  string
+		expectedCode int
+		expectedBody string
+		compress     bool
+	}{
+		{method: http.MethodPost, body: "{\"url\":\"https://practicum.yandex.ru/\"}", contentType: "application/json", compress: true, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/42b3e75f92\"}"},
+		{method: http.MethodPost, body: "{\"url\":\"https://practicum.yandex.ru/\"}", contentType: "application/xml", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/42b3e75f92\"}"},
+	}
+
+	routes := chi.NewRouter()
+	routes.Post("/api/shorten", handlers.GzipCompress(handlers.ObjectShorterURL(inMemoryStorage, testBaseURL)))
+	srv := httptest.NewServer(routes)
+
+	defer srv.Close()
+
+	for _, tc := range testCases {
+
+		t.Run(tc.method, func(t *testing.T) {
+
+			// Отправка HTTP-запроса
+			req := resty.New().R()
+			req.Method = tc.method
+			req.URL = srv.URL + "/api/shorten"
+
+			if len(tc.body) > 0 {
+				req.SetHeader("Content-Type", tc.contentType)
+				req.SetHeader("Accept-Encoding", "gzip")
+				req.SetBody(tc.body)
+			}
+
+			resp, err := req.Send()
+			assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+
+			// Проверка кода ответа
+			if resp.StatusCode() != tc.expectedCode {
+				t.Errorf("Код ответа не совпадает с ожидаемым. Ожидалось: %d, Получено: %d", tc.expectedCode, resp.StatusCode())
+			}
+
+			// Проверка содержимого теля запроса
+			if tc.expectedBody != "" {
+				assert.JSONEq(t, tc.expectedBody, string(resp.Body()))
+			}
+
+			// Проверка сжатия данных
+			if tc.compress {
+				contentEncoding := resp.Header().Get("Content-Encoding")
+				sendsGzip := strings.Contains(contentEncoding, "gzip")
+				assert.True(t, sendsGzip)
 			}
 		})
 	}
