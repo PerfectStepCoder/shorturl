@@ -35,4 +35,5 @@ type Settings struct {
 	ServiceNetAddress NetAddress
 	BaseURL           string
 	FileStoragePath   string
+	DatabaseDSN       string
 }

@@ -7,9 +7,11 @@ import (
 	"strconv"
 	"strings"
 )
+
 const (
-	baseURL = "http://localhost:8080"
+	baseURL         = "http://localhost:8080"
 	fileStoragePath = "shorturls.data"
+	dataBaseDSN     = "postgres://username:password@localhost:5432/mydb"
 )
 
 func splitHostPort(addr string) (string, int, error) {
@@ -34,6 +36,7 @@ func ParseFlags() Settings {
 
 	flag.Var(&appSettings.ServiceNetAddress, "a", "Net address host:port")
 	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")
+	flag.StringVar(&appSettings.DatabaseDSN, "d", dataBaseDSN, "DataBaseDSN connect to DB")
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
 	flag.Parse()
 
@@ -43,6 +46,9 @@ func ParseFlags() Settings {
 	}
 	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
 		appSettings.FileStoragePath = envFileStoragePath
+	}
+	if envDatabaseDSN := os.Getenv("SHORTURL_DATABASE_DSN"); envDatabaseDSN != "" {
+		appSettings.DatabaseDSN = envDatabaseDSN
 	}
 	if envRunAddr := os.Getenv("SHORTURL_SERVER_ADDRESS"); envRunAddr != "" {
 		host, port, err := splitHostPort(envRunAddr)

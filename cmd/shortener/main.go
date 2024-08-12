@@ -50,6 +50,7 @@ func main() {
 	routes.Post("/", hdl.ShorterURL(inMemoryStorage, appSettings.BaseURL))
 	routes.Get("/{id}", hdl.GetURL(inMemoryStorage))
 	routes.Post("/api/shorten", hdl.ObjectShorterURL(inMemoryStorage, appSettings.BaseURL))
+	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
 		appSettings.ServiceNetAddress.Port)
@@ -70,7 +71,7 @@ func main() {
 		fmt.Printf("Received signal: %s\n", sig)
 		done <- true
 	}()
-	
+
 	log.Printf("Server is running...")
 	log.Printf(`%s:%d`, appSettings.ServiceNetAddress.Host, appSettings.ServiceNetAddress.Port)
 
