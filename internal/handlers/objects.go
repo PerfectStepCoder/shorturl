@@ -13,11 +13,6 @@ import (
 func ObjectShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
-		if req.Method != http.MethodPost {
-			res.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-
 		// Декодирование запроса
 		var requestFullURL models.RequestFullURL
 		dec := json.NewDecoder(req.Body)

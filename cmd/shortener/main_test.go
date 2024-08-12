@@ -156,9 +156,9 @@ func TestObjectsURL(t *testing.T) {
 				t.Errorf("Код ответа не совпадает с ожидаемым. Ожидалось: %d, Получено: %d", tc.expectedCode, resp.StatusCode())
 			}
 
-			// Проверка содержимого теля запроса
+			// Проверка содержимого тела запроса
 			if tc.expectedBody != "" {
-				assert.JSONEq(t, tc.expectedBody, string(resp.Body()))
+				assert.JSONEq(t, tc.expectedBody, string(resp.Body()), "содержимое ответа в формате JSON не совпадает")
 			}
 		})
 	}

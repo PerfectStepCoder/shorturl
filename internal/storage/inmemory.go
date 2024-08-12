@@ -40,7 +40,7 @@ func (s *StorageInMemory) LoadData(pathToFile string) int {
 	count := 0
 	consumer, err := NewConsumer(pathToFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	defer consumer.Close()
 	for {
@@ -60,7 +60,7 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 	producer, err := NewProducer(pathToFile)
 	count := 0
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	defer producer.Close()
 
@@ -69,7 +69,7 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 			UUID: uint(count), OriginalURL: originURL, ShortURL: shortURL,
 		}
 		if err := producer.WriteShortURL(&newShortURL); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 		count += 1
 	}

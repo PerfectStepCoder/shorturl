@@ -15,7 +15,7 @@ func GetLogger() (*logrus.Logger, *os.File) {
 	// Открываем файл для логирования
 	file, err := os.OpenFile("logfile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error(err)
 	}
 
 	// Устанавливаем вывод логгера на несколько writer'ов (консоль и файл)

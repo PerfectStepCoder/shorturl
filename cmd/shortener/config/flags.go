@@ -7,6 +7,10 @@ import (
 	"strconv"
 	"strings"
 )
+const (
+	baseURL = "http://localhost:8080"
+	fileStoragePath = "shorturls.data"
+)
 
 func splitHostPort(addr string) (string, int, error) {
 	parts := strings.Split(addr, ":")
@@ -27,8 +31,6 @@ func ParseFlags() Settings {
 	// Default
 	appSettings.ServiceNetAddress.Host = ""
 	appSettings.ServiceNetAddress.Port = 0
-	baseURL := "http://localhost:8080"
-	fileStoragePath := "shorturls.data"
 
 	flag.Var(&appSettings.ServiceNetAddress, "a", "Net address host:port")
 	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")

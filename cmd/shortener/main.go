@@ -38,9 +38,18 @@ func main() {
 	fmt.Printf("Loaded: %d recordes from file: %s\n", loaded, appSettings.FileStoragePath)
 
 	routes := chi.NewRouter()
-	routes.Post("/", hdl.GzipCompress(hdl.WithLogging(hdl.ShorterURL(inMemoryStorage, appSettings.BaseURL), logger)))
-	routes.Get("/{id}", hdl.GzipCompress(hdl.WithLogging(hdl.GetURL(inMemoryStorage), logger)))
-	routes.Post("/api/shorten", hdl.GzipCompress(hdl.ObjectShorterURL(inMemoryStorage, appSettings.BaseURL)))
+
+	// Middleware
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.WithLogging(next.ServeHTTP, logger)
+	})
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.GzipCompress(next.ServeHTTP)
+	})
+
+	routes.Post("/", hdl.ShorterURL(inMemoryStorage, appSettings.BaseURL))
+	routes.Get("/{id}", hdl.GetURL(inMemoryStorage))
+	routes.Post("/api/shorten", hdl.ObjectShorterURL(inMemoryStorage, appSettings.BaseURL))
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
 		appSettings.ServiceNetAddress.Port)
@@ -50,7 +59,7 @@ func main() {
 			appSettings.ServiceNetAddress.Port), routes)
 
 		if err != nil {
-			log.Fatalf("error: %s", err)
+			log.Printf("error: %s", err)
 		}
 	}()
 
@@ -61,15 +70,15 @@ func main() {
 		fmt.Printf("Received signal: %s\n", sig)
 		done <- true
 	}()
-
-	fmt.Println("Server is running...")
-	fmt.Printf(`%s:%d`, appSettings.ServiceNetAddress.Host, appSettings.ServiceNetAddress.Port)
+	
+	log.Printf("Server is running...")
+	log.Printf(`%s:%d`, appSettings.ServiceNetAddress.Host, appSettings.ServiceNetAddress.Port)
 
 	// Ожидание сигнала завершения
 	<-done
-	fmt.Println("Shutting down server...")
+	log.Println("Shutting down server...")
 
 	// Save
 	saved := inMemoryStorage.SaveData(appSettings.FileStoragePath)
-	fmt.Printf("Saved: %d recordes to file: %s\n", saved, appSettings.FileStoragePath)
+	log.Printf("Saved: %d recordes to file: %s\n", saved, appSettings.FileStoragePath)
 }
