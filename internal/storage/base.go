@@ -25,7 +25,7 @@ type PersistanceStorage interface {
 	StorageFile
 }
 
-func make_hash(value string, length int) string {
+func makeHash(value string, length int) string {
 	output := ""
 	hash := sha256.New()
 	hash.Write([]byte(value))

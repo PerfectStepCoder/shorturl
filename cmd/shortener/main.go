@@ -89,7 +89,7 @@ func main() {
 	<-done
 	log.Println("Shutting down server...")
 
-	if appSettings.SaveDBtoFile {
+	if appSettings.DatabaseDSN == "" {
 		// Save
 		saved := mainStorage.SaveData(appSettings.FileStoragePath)
 		log.Printf("Saved: %d recordes to file: %s\n", saved, appSettings.FileStoragePath)

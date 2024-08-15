@@ -102,7 +102,7 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 
 func (s *StorageInPostgres) Save(value string) string {
 	newUUID := uuid.New()
-	hashKey := make_hash(value, s.lengthShortURL)
+	hashKey := makeHash(value, s.lengthShortURL)
 	// SQL-запрос на вставку новой записи
 	query := `
 		INSERT INTO urls (uuid, short, original)

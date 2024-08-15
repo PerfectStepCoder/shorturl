@@ -19,7 +19,7 @@ func NewStorageInMemory(lengthShortURL int) (*StorageInMemory, error) {
 func (s *StorageInMemory) Save(value string) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	hashKey := make_hash(value, s.lengthShortURL)
+	hashKey := makeHash(value, s.lengthShortURL)
 	s.data[hashKey] = value
 	return hashKey
 }
