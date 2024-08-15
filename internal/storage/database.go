@@ -72,18 +72,18 @@ func NewStorageInPostgres(connectionString string, lengthShortURL int) (*Storage
 	config, err := pgx.ParseConfig(connectionString)
 	if err != nil {
 		log.Printf("Failed to parse connection string: %v", err)
-		return &newStorage, errors.New("Failed to connect to database")
+		return &newStorage, errors.New("failed to connect to database")
 	}
 
 	if initDB(config) {
 		connectionToDB, err := pgx.Connect(context.Background(), connectionString)
 		if err != nil {
-			return &newStorage, errors.New("Failed to connect to database")
+			return &newStorage, errors.New("failed to connect to database")
 		}
 		newStorage.connectionToDB = connectionToDB
 		return &newStorage, nil
 	} else {
-		return &newStorage, errors.New("Failed database init")
+		return &newStorage, errors.New("failed database init")
 	}
 }
 
