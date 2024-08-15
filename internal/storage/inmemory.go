@@ -73,4 +73,4 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 
 func (s *StorageInMemory) Close() {
 	s.data = nil
-} 
+}

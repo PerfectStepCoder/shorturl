@@ -36,5 +36,5 @@ type Settings struct {
 	BaseURL           string
 	FileStoragePath   string
 	DatabaseDSN       string
-	SaveDBtoFile	  bool
+	SaveDBtoFile      bool
 }

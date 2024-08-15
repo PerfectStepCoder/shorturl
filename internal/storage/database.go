@@ -10,20 +10,19 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-
 type StorageInPostgres struct {
-	connectionToDB	*pgx.Conn
+	connectionToDB *pgx.Conn
 	lengthShortURL int
 }
 
 func initDB(config *pgx.ConnConfig) bool {
 	// Подключение к стандартной БД
-	connString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", 
-							  config.User, 
-							  config.Password, 
-							  config.Host,
-							  config.Port,
-							  "postgres")
+	connString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
+		config.User,
+		config.Password,
+		config.Host,
+		config.Port,
+		"postgres")
 	conn, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
@@ -38,12 +37,12 @@ func initDB(config *pgx.ConnConfig) bool {
 		log.Printf("Database already exist: %v\n", err)
 	}
 	// Подключение к новой базе данных "urlservice"
-	connString = fmt.Sprintf("postgres://%s:%s@%s:%d/%s", 
-							  config.User, 
-							  config.Password, 
-							  config.Host,
-							  config.Port,
-							  config.Database)
+	connString = fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
+		config.User,
+		config.Password,
+		config.Host,
+		config.Port,
+		config.Database)
 	urlserviceDB, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
@@ -67,22 +66,22 @@ func initDB(config *pgx.ConnConfig) bool {
 }
 
 func NewStorageInPostgres(connectionString string, lengthShortURL int) (*StorageInPostgres, error) {
-	
+
 	newStorage := StorageInPostgres{connectionToDB: nil, lengthShortURL: lengthShortURL}
-	
+
 	config, err := pgx.ParseConfig(connectionString)
-    if err != nil {
-        log.Printf("Failed to parse connection string: %v", err)
+	if err != nil {
+		log.Printf("Failed to parse connection string: %v", err)
 		return &newStorage, errors.New("Failed to connect to database")
-    }
-	
+	}
+
 	if initDB(config) {
 		connectionToDB, err := pgx.Connect(context.Background(), connectionString)
 		if err != nil {
 			return &newStorage, errors.New("Failed to connect to database")
 		}
 		newStorage.connectionToDB = connectionToDB
-		return &newStorage, nil 
+		return &newStorage, nil
 	} else {
 		return &newStorage, errors.New("Failed database init")
 	}
@@ -130,4 +129,4 @@ func (s *StorageInPostgres) SaveData(pathToFile string) int {
 
 func (s *StorageInPostgres) Close() {
 	s.connectionToDB.Close(context.Background())
-} 
+}

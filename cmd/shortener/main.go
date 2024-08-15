@@ -30,7 +30,7 @@ func main() {
 	defer logFile.Close()
 
 	appSettings := config.ParseFlags()
-	log.Printf("Settings:\n", appSettings, "\n")
+	log.Print("Settings:\n", appSettings, "\n")
 
 	if appSettings.DatabaseDSN != "" {
 		var err error
