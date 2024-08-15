@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"io"
 	"log"
 	"sync"
@@ -14,17 +12,14 @@ type StorageInMemory struct {
 	lengthShortURL int
 }
 
-func NewStorage(lengthShortURL int) *StorageInMemory {
-	return &StorageInMemory{data: make(map[string]string), lengthShortURL: lengthShortURL}
+func NewStorageInMemory(lengthShortURL int) (*StorageInMemory, error) {
+	return &StorageInMemory{data: make(map[string]string), lengthShortURL: lengthShortURL}, nil
 }
 
 func (s *StorageInMemory) Save(value string) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	hash := sha256.New()
-	hash.Write([]byte(value))
-	hashKey := hex.EncodeToString(hash.Sum(nil))
-	hashKey = hashKey[:s.lengthShortURL]
+	hashKey := make_hash(value, s.lengthShortURL)
 	s.data[hashKey] = value
 	return hashKey
 }
@@ -75,3 +70,7 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 	}
 	return count
 }
+
+func (s *StorageInMemory) Close() {
+	s.data = nil
+} 

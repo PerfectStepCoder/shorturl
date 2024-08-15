@@ -11,7 +11,7 @@ import (
 const (
 	baseURL         = "http://localhost:8080"
 	fileStoragePath = "shorturls.data"
-	dataBaseDSN     = "postgres://username:password@localhost:5432/mydb"
+	//dataBaseDSN     = "postgres://admin:password@localhost:6432/urlservice"
 )
 
 func splitHostPort(addr string) (string, int, error) {
@@ -36,8 +36,9 @@ func ParseFlags() Settings {
 
 	flag.Var(&appSettings.ServiceNetAddress, "a", "Net address host:port")
 	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")
-	flag.StringVar(&appSettings.DatabaseDSN, "d", dataBaseDSN, "DataBaseDSN connect to DB")
+	flag.StringVar(&appSettings.DatabaseDSN, "d", "", "DataBaseDSN connect to DB")
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
+	flag.BoolVar(&appSettings.SaveDBtoFile, "s", false, "Save db to file")
 	flag.Parse()
 
 	// Если есть переменные окружения они переписывают настройки

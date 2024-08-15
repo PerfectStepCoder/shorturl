@@ -14,7 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-var inMemoryStorage *storage.StorageInMemory
+var mainStorage storage.PersistanceStorage
 
 const lengthShortURL = 10
 
@@ -30,12 +30,22 @@ func main() {
 	defer logFile.Close()
 
 	appSettings := config.ParseFlags()
-	fmt.Print("Settings:\n", appSettings, "\n")
-	inMemoryStorage = storage.NewStorage(lengthShortURL)
+	log.Printf("Settings:\n", appSettings, "\n")
 
-	// Load
-	loaded := inMemoryStorage.LoadData(appSettings.FileStoragePath)
-	fmt.Printf("Loaded: %d recordes from file: %s\n", loaded, appSettings.FileStoragePath)
+	if appSettings.DatabaseDSN != "" {
+		var err error
+		mainStorage, err = storage.NewStorageInPostgres(appSettings.DatabaseDSN, lengthShortURL)
+		if err != nil {
+			log.Fatalf("Problem with database")
+		}
+	} else {
+		mainStorage, _ = storage.NewStorageInMemory(lengthShortURL)
+		// Load
+		loaded := mainStorage.LoadData(appSettings.FileStoragePath)
+		log.Printf("Loaded: %d recordes from file: %s\n", loaded, appSettings.FileStoragePath)
+	}
+
+	defer mainStorage.Close()
 
 	routes := chi.NewRouter()
 
@@ -47,9 +57,9 @@ func main() {
 		return hdl.GzipCompress(next.ServeHTTP)
 	})
 
-	routes.Post("/", hdl.ShorterURL(inMemoryStorage, appSettings.BaseURL))
-	routes.Get("/{id}", hdl.GetURL(inMemoryStorage))
-	routes.Post("/api/shorten", hdl.ObjectShorterURL(inMemoryStorage, appSettings.BaseURL))
+	routes.Post("/", hdl.ShorterURL(mainStorage, appSettings.BaseURL))
+	routes.Get("/{id}", hdl.GetURL(mainStorage))
+	routes.Post("/api/shorten", hdl.ObjectShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
@@ -79,7 +89,9 @@ func main() {
 	<-done
 	log.Println("Shutting down server...")
 
-	// Save
-	saved := inMemoryStorage.SaveData(appSettings.FileStoragePath)
-	log.Printf("Saved: %d recordes to file: %s\n", saved, appSettings.FileStoragePath)
+	if appSettings.SaveDBtoFile {
+		// Save
+		saved := mainStorage.SaveData(appSettings.FileStoragePath)
+		log.Printf("Saved: %d recordes to file: %s\n", saved, appSettings.FileStoragePath)
+	}
 }

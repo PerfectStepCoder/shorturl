@@ -32,7 +32,7 @@ func TestShorterURL(t *testing.T) {
 		{method: http.MethodPost, body: "", expectedCode: http.StatusBadRequest, expectedBody: "URL not send\n"},
 	}
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 	targetHandler := handlers.ShorterURL(inMemoryStorage, testBaseURL)
 
 	srv := httptest.NewServer(targetHandler)
@@ -69,7 +69,7 @@ func TestShorterURL(t *testing.T) {
 
 func TestGetURL(t *testing.T) {
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
 	assert.Equal(t, shortString, "42b3e75f92")
 
@@ -114,7 +114,7 @@ func TestGetURL(t *testing.T) {
 
 func TestObjectsURL(t *testing.T) {
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
 	assert.Equal(t, shortString, "42b3e75f92")
 
@@ -166,7 +166,7 @@ func TestObjectsURL(t *testing.T) {
 
 func TestGzipCompression(t *testing.T) {
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
 	assert.Equal(t, shortString, "42b3e75f92")
 

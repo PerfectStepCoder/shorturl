@@ -5,6 +5,7 @@ go 1.22.3
 require (
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-resty/resty/v2 v2.13.1
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
