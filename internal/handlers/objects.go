@@ -78,10 +78,10 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 		}
 
 		// Кодирование ответа
-		var resp []models.ResponseShortURL
+		var resp []models.ResponseCorrelationURL
 		for _, value := range shortURLs {
-			resp = append(resp, models.ResponseShortURL{
-				Result: fmt.Sprintf("%s/%s", baseURL, value),
+			resp = append(resp, models.ResponseCorrelationURL{
+				CorrelationID: value, ShortURL: fmt.Sprintf("%s/%s", baseURL, value),
 			})
 		}
 
