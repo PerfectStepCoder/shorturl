@@ -170,7 +170,7 @@ func (s *StorageInPostgres) CorrelationGet(correlationID string) (string, bool) 
 	return originalURL, true
 }
 
-func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) []string {
+func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) ([]string, error) {
 
 	var output []string
 
@@ -181,7 +181,7 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) [
 	tx, err := s.connectionToDB.Begin(context.Background())
 	if err != nil {
 		log.Printf("Failed to begin transaction: %v\n", err)
-		return output
+		return output, err
 	}
 
 	for _, item := range correlationURLs {
@@ -198,7 +198,15 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) [
 		if err != nil {
 			tx.Rollback(context.Background())
 			log.Printf("Failed to insert data: %v\n", err)
-			return output
+			// Проверка на ошибку типа UniqueViolation
+			var pge *pgconn.PgError
+			if errors.As(err, &pge) {
+				if pge.Code == pgerrcode.UniqueViolation {
+					log.Println("Error: A url with the same value already exists.")
+					return output, NewUniqURLError(originalURL)
+				}
+			}
+			return output, nil
 		}
 	}
 
@@ -208,5 +216,5 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) [
 		log.Printf("Failed to commit transaction: %v\n", err)
 	}
 
-	return output
+	return output, nil
 }

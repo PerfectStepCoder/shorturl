@@ -67,9 +67,15 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 			})
 		}
 
-		shortURLs := mainStorage.CorrelationsSave(correlationURLs)
-
-		log.Print(shortURLs)
+		shortURLs, err := mainStorage.CorrelationsSave(correlationURLs)
+		
+		if err != nil {
+			var ue *storage.UniqURLError
+			if errors.As(err, &ue) {
+				http.Error(res, fmt.Sprintf("URL alredy exist: %s", ue.ExistURL), http.StatusConflict)
+				return
+			}
+		}
 
 		// Кодирование ответа
 		var resp []models.ResponseShortURL

@@ -91,7 +91,7 @@ func (s *StorageInMemory) CorrelationGet(correlationID string) (string, bool) {
 	return value, exists
 }
 
-func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL) []string {
+func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL) ([]string, error) {
 
 	var output []string
 
@@ -100,7 +100,7 @@ func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL) []s
 		s.CorrelationSave(value.OriginalURL, value.CorrelationID)
 	}
 
-	return output
+	return output, nil
 }
 
 func (s *StorageInMemory) Close() {
