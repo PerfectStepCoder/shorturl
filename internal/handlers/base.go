@@ -1,16 +1,16 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"github.com/go-chi/chi/v5"
 	"io"
 	"log"
 	"net/http"
-
-	"github.com/PerfectStepCoder/shorturl/internal/storage"
-	"github.com/go-chi/chi/v5"
 )
 
-func ShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc {
+func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		originURLbytes, _ := io.ReadAll(req.Body)
 		defer func() {
@@ -23,7 +23,14 @@ func ShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc {
 			http.Error(res, "URL not send", http.StatusBadRequest)
 			return
 		}
-		shortURL := storage.Save(originURL)
+		shortURL, err := mainStorage.Save(originURL)
+		if err != nil {
+			var ue *storage.UniqURLError
+			if errors.As(err, &ue) {
+				http.Error(res, fmt.Sprintf("URL alredy exist: %s", ue.ExistURL), http.StatusConflict)
+				return
+			}
+		}
 		shortURLfull := fmt.Sprintf("%s/%s", baseURL, shortURL)
 		res.WriteHeader(http.StatusCreated)
 		res.Header().Set("content-type", "text/plain")

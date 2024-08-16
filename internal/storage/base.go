@@ -4,11 +4,12 @@ package storage
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 )
 
 // Storage - интерфейс для записи/чтения данных
 type Storage interface {
-	Save(value string) string          // возвращает хеш ссылки
+	Save(value string) (string, error) // возвращает хеш ссылки
 	Get(hashKey string) (string, bool) // возвращает origin ссылку или "" если не найдено
 	Close()                            // освобождение ресурсов
 }
@@ -44,4 +45,31 @@ func makeHash(value string, length int) string {
 	hashKey := hex.EncodeToString(hash.Sum(nil))
 	output = hashKey[:length]
 	return output
+}
+
+// TODO реализовать обертывание в эту ошибку все другие более "мелкие"
+type StorageError struct {
+	Err error
+}
+
+func NewStorageError(err error) error {
+	return &StorageError{
+		Err: err,
+	}
+}
+
+func (se *StorageError) Error() string {
+	return fmt.Sprintf("%v", se.Err)
+}
+
+type UniqURLError struct {
+	ExistURL string
+}
+
+func NewUniqURLError(text string) error {
+	return &UniqURLError{text}
+}
+
+func (e *UniqURLError) Error() string {
+	return fmt.Sprintf("uniq error with %s", e.ExistURL)
 }

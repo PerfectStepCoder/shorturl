@@ -2,15 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
-	"net/http"
-
 	"github.com/PerfectStepCoder/shorturl/internal/models"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"log"
+	"net/http"
 )
 
-func ObjectShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc {
+func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
 		// Декодирование запроса
@@ -21,7 +21,15 @@ func ObjectShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc 
 			return
 		}
 
-		shortURL := storage.Save(requestFullURL.URL)
+		shortURL, err := mainStorage.Save(requestFullURL.URL)
+		if err != nil {
+			var ue *storage.UniqURLError
+			if errors.As(err, &ue) {
+				http.Error(res, fmt.Sprintf("URL alredy exist: %s", ue.ExistURL), http.StatusConflict)
+				return
+			}
+		}
+
 		resp := models.ResponseShortURL{
 			Result: fmt.Sprintf("%s/%s", baseURL, shortURL),
 		}

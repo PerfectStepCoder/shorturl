@@ -16,12 +16,18 @@ func NewStorageInMemory(lengthShortURL int) (*StorageInMemory, error) {
 	return &StorageInMemory{data: make(map[string]string), lengthShortURL: lengthShortURL}, nil
 }
 
-func (s *StorageInMemory) Save(value string) string {
+func (s *StorageInMemory) Save(value string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	hashKey := makeHash(value, s.lengthShortURL)
-	s.data[hashKey] = value
-	return hashKey
+	// Проверка наличии ключа в map
+	_, exists := s.data[hashKey]
+	if exists {
+		return hashKey, NewUniqURLError(value)
+	} else {
+		s.data[hashKey] = value
+		return hashKey, nil
+	}
 }
 
 func (s *StorageInMemory) Get(hashKey string) (string, bool) {

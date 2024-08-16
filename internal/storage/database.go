@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"log"
 )
 
 type StorageInPostgres struct {
@@ -56,7 +57,7 @@ func initDB(config *pgx.ConnConfig) bool {
 		uuid UUID PRIMARY KEY,
 		correlation_id TEXT NULL,
 		short VARCHAR(255) NOT NULL,
-		original TEXT NOT NULL
+		original TEXT NOT NULL UNIQUE
 	)`
 	_, err = urlserviceDB.Exec(context.Background(), query)
 	if err != nil {
@@ -101,7 +102,7 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	return originalURL, true
 }
 
-func (s *StorageInPostgres) Save(value string) string {
+func (s *StorageInPostgres) Save(value string) (string, error) {
 	newUUID := uuid.New()
 	hashKey := makeHash(value, s.lengthShortURL)
 	// SQL-запрос на вставку новой записи
@@ -112,10 +113,18 @@ func (s *StorageInPostgres) Save(value string) string {
 	_, err := s.connectionToDB.Exec(context.Background(), query, newUUID, hashKey, value)
 
 	if err != nil {
+		// Проверка на ошибку типа UniqueViolation
+		var pge *pgconn.PgError
+		if errors.As(err, &pge) {
+			if pge.Code == pgerrcode.UniqueViolation {
+				log.Println("Error: A url with the same value already exists.")
+				return hashKey, NewUniqURLError(value)
+			}
+		}
 		log.Printf("Failed to insert new record: %v\n", err)
+		return hashKey, err
 	}
-
-	return hashKey
+	return hashKey, nil
 }
 
 func (s *StorageInPostgres) LoadData(pathToFile string) int {

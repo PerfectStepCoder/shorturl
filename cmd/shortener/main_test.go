@@ -70,8 +70,8 @@ func TestShorterURL(t *testing.T) {
 func TestGetURL(t *testing.T) {
 
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
-	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
-	assert.Equal(t, shortString, "42b3e75f92")
+	shortString, _ := inMemoryStorage.Save("https://yandex.ru/")
+	assert.Equal(t, shortString, "77fca5950e")
 
 	testCases := []struct {
 		method       string
@@ -115,8 +115,6 @@ func TestGetURL(t *testing.T) {
 func TestObjectsURL(t *testing.T) {
 
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
-	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
-	assert.Equal(t, shortString, "42b3e75f92")
 
 	testCases := []struct {
 		method       string
@@ -167,7 +165,7 @@ func TestObjectsURL(t *testing.T) {
 func TestGzipCompression(t *testing.T) {
 
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
-	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
+	shortString, _ := inMemoryStorage.Save("https://practicum.yandex.ru/")
 	assert.Equal(t, shortString, "42b3e75f92")
 
 	testCases := []struct {
@@ -178,8 +176,8 @@ func TestGzipCompression(t *testing.T) {
 		expectedBody string
 		compress     bool
 	}{
-		{method: http.MethodPost, body: "{\"url\":\"https://practicum.yandex.ru/\"}", contentType: "application/json", compress: true, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/42b3e75f92\"}"},
-		{method: http.MethodPost, body: "{\"url\":\"https://practicum.yandex.ru/\"}", contentType: "application/xml", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/42b3e75f92\"}"},
+		{method: http.MethodPost, body: "{\"url\":\"https://yandex.ru/\"}", contentType: "application/json", compress: true, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/77fca5950e\"}"},
+		{method: http.MethodPost, body: "{\"url\":\"https://google.ru/\"}", contentType: "application/xml", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/41c9cc9cba\"}"},
 	}
 
 	routes := chi.NewRouter()
