@@ -20,8 +20,8 @@ type CorrelationURL struct {
 }
 
 type CorrelationStorage interface {
-	CorrelationSave(value string, correlationID string) string  // возвращает хеш ссылки
-	CorrelationGet(correlationID string) (string, bool)         // возвращает origin ссылку
+	CorrelationSave(value string, correlationID string) string           // возвращает хеш ссылки
+	CorrelationGet(correlationID string) (string, bool)                  // возвращает origin ссылку
 	CorrelationsSave(correlationURLs []CorrelationURL) ([]string, error) // возвращает срез хеш ссылок
 }
 

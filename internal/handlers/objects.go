@@ -68,7 +68,7 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 		}
 
 		shortURLs, err := mainStorage.CorrelationsSave(correlationURLs)
-		
+
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
