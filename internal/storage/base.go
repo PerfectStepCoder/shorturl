@@ -8,9 +8,20 @@ import (
 
 // Storage - интерфейс для записи/чтения данных
 type Storage interface {
-	Save(value string) string
-	Get(hashKey string) (string, bool)
-	Close() // освобождение ресурсов
+	Save(value string) string          // возвращает хеш ссылки
+	Get(hashKey string) (string, bool) // возвращает origin ссылку или "" если не найдено
+	Close()                            // освобождение ресурсов
+}
+
+type CorrelationURL struct {
+	CorrelationID string
+	OriginalURL   string
+}
+
+type CorrelationStorage interface {
+	CorrelationSave(value string, correlationID string) string  // возвращает хеш ссылки
+	CorrelationGet(correlationID string) (string, bool)         // возвращает origin ссылку
+	CorrelationsSave(correlationURLs []CorrelationURL) []string // возвращает срез хеш ссылок
 }
 
 // StorageFile - интерфейс для записи/чтения данных из файла
@@ -23,6 +34,7 @@ type StorageFile interface {
 type PersistanceStorage interface {
 	Storage
 	StorageFile
+	CorrelationStorage
 }
 
 func makeHash(value string, length int) string {

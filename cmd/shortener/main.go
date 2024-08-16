@@ -60,6 +60,7 @@ func main() {
 	routes.Post("/", hdl.ShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Get("/{id}", hdl.GetURL(mainStorage))
 	routes.Post("/api/shorten", hdl.ObjectShorterURL(mainStorage, appSettings.BaseURL))
+	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,

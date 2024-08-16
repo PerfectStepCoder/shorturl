@@ -54,6 +54,7 @@ func initDB(config *pgx.ConnConfig) bool {
 	query := `
 	CREATE TABLE IF NOT EXISTS urls (
 		uuid UUID PRIMARY KEY,
+		correlation_id TEXT NULL,
 		short VARCHAR(255) NOT NULL,
 		original TEXT NOT NULL
 	)`
@@ -129,4 +130,74 @@ func (s *StorageInPostgres) SaveData(pathToFile string) int {
 
 func (s *StorageInPostgres) Close() {
 	s.connectionToDB.Close(context.Background())
+}
+
+func (s *StorageInPostgres) CorrelationSave(value string, correlationID string) string {
+	// SQL-запрос на вставку новой записи
+	query := `
+		INSERT INTO urls (uuid, short, original)
+		VALUES ($1, $2, $3)
+	`
+	_, err := s.connectionToDB.Exec(context.Background(), query, correlationID, correlationID, value)
+
+	if err != nil {
+		log.Printf("Failed to insert new record: %v\n", err)
+	}
+
+	return correlationID
+}
+
+func (s *StorageInPostgres) CorrelationGet(correlationID string) (string, bool) {
+	var originalURL string
+
+	query := `
+		SELECT original FROM urls WHERE short = $1
+	`
+	err := s.connectionToDB.QueryRow(context.Background(), query, correlationID).Scan(&originalURL)
+	if err != nil {
+		log.Printf("Failed to find original URL: %v\n", err)
+		return originalURL, false
+	}
+	return originalURL, true
+}
+
+func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) []string {
+
+	var output []string
+
+	// Подготовка SQL-запроса для вставки данных
+	query := `INSERT INTO urls (uuid, correlation_id, short, original) VALUES ($1, $2, $3, $4)`
+
+	// Начало транзакции
+	tx, err := s.connectionToDB.Begin(context.Background())
+	if err != nil {
+		log.Printf("Failed to begin transaction: %v\n", err)
+		return output
+	}
+
+	for _, item := range correlationURLs {
+
+		newUUID := uuid.New()
+
+		// Генерация UUID (например, с использованием pgx или других методов)
+		shortURL := item.CorrelationID
+		originalURL := item.OriginalURL
+		output = append(output, shortURL)
+
+		// Выполнение вставки в рамках транзакции
+		_, err = tx.Exec(context.Background(), query, newUUID, item.CorrelationID, shortURL, originalURL)
+		if err != nil {
+			tx.Rollback(context.Background())
+			log.Printf("Failed to insert data: %v\n", err)
+			return output
+		}
+	}
+
+	// Зафиксировать транзакцию
+	err = tx.Commit(context.Background())
+	if err != nil {
+		log.Printf("Failed to commit transaction: %v\n", err)
+	}
+
+	return output
 }

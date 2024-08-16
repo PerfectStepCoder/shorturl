@@ -11,7 +11,6 @@ import (
 const (
 	baseURL         = "http://localhost:8080"
 	fileStoragePath = "shorturls.data"
-	//dataBaseDSN     = "postgres://admin:password@localhost:6432/urlservice"
 )
 
 func splitHostPort(addr string) (string, int, error) {
