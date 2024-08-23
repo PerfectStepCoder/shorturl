@@ -40,12 +40,12 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 		res.WriteHeader(http.StatusCreated)
 
 		// Cериализуем ответ сервера
-		enc := json.NewEncoder(res)
-		if err := enc.Encode(resp); err != nil {
+		jsonResp, err := json.Marshal(resp)
+		if err != nil {
 			log.Println("Error writing response:", err)
 			return
 		}
-
+		res.Write(jsonResp)
 	}
 }
 
