@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
+	"strings"
 	"github.com/PerfectStepCoder/shorturl/internal/models"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 )
@@ -26,7 +26,8 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
-				http.Error(res, fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), http.StatusConflict)
+				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
+				http.Error(res, originShortURL, http.StatusConflict)
 				return
 			}
 		}
@@ -73,7 +74,8 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
-				http.Error(res, fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), http.StatusConflict)
+				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
+				http.Error(res, originShortURL, http.StatusConflict)
 				return
 			}
 		}

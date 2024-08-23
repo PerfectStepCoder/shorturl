@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-
+	"strings"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
@@ -28,7 +28,8 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
-				http.Error(res, fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), http.StatusConflict)
+				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
+				http.Error(res, originShortURL, http.StatusConflict)
 				return
 			}
 		}
