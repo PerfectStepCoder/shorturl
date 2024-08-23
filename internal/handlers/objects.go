@@ -41,11 +41,9 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 					log.Println("Error writing response:", err)
 					return
 				}
-				//log.Println("RESULT:", jsonResp)
-
+				log.Println("RESULT:", resp)
+				log.Println("RESULTjson:", jsonResp)
 				res.Write(jsonResp)
-				//fmt.Fprint(res, originShortURL)
-				//http.Error(res, originShortURL, http.StatusConflict)
 				return
 			}
 		}
