@@ -33,7 +33,7 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 		}
 
 		resp := models.ResponseShortURL{
-			Result: fmt.Sprintf("%s/%s", baseURL, shortURL),
+			Result: strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, shortURL), "\n"),
 		}
 
 		res.Header().Set("Content-Type", "application/json")
