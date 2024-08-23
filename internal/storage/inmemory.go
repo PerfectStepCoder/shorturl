@@ -23,7 +23,7 @@ func (s *StorageInMemory) Save(value string) (string, error) {
 	// Проверка наличии ключа в map
 	_, exists := s.data[hashKey]
 	if exists {
-		return hashKey, NewUniqURLError(value)
+		return hashKey, NewUniqURLError(value, hashKey)
 	} else {
 		s.data[hashKey] = value
 		return hashKey, nil

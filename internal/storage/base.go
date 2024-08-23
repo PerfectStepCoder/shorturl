@@ -64,10 +64,11 @@ func (se *StorageError) Error() string {
 
 type UniqURLError struct {
 	ExistURL string
+	ShortHash string
 }
 
-func NewUniqURLError(text string) error {
-	return &UniqURLError{text}
+func NewUniqURLError(existURL string, shortHash string) error {
+	return &UniqURLError{existURL, shortHash}
 }
 
 func (e *UniqURLError) Error() string {

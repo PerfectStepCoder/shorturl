@@ -118,7 +118,7 @@ func (s *StorageInPostgres) Save(value string) (string, error) {
 		if errors.As(err, &pge) {
 			if pge.Code == pgerrcode.UniqueViolation {
 				log.Println("Error: A url with the same value already exists.")
-				return hashKey, NewUniqURLError(value)
+				return hashKey, NewUniqURLError(value, hashKey)
 			}
 		}
 		log.Printf("Failed to insert new record: %v\n", err)
@@ -203,7 +203,7 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) (
 			if errors.As(err, &pge) {
 				if pge.Code == pgerrcode.UniqueViolation {
 					log.Println("Error: A url with the same value already exists.")
-					return output, NewUniqURLError(originalURL)
+					return output, NewUniqURLError(originalURL, shortURL)
 				}
 			}
 			return output, nil
