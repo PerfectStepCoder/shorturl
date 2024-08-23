@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
 	"github.com/PerfectStepCoder/shorturl/internal/models"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 )
@@ -29,8 +30,10 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
 				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
-				log.Println("RESULT originShortURL:", originShortURL)
-				http.Error(res, originShortURL, http.StatusConflict)
+				//log.Println("RESULT originShortURL:", originShortURL)
+				res.WriteHeader(http.StatusConflict)
+				fmt.Fprint(res, originShortURL)
+				//http.Error(res, originShortURL, http.StatusConflict)
 				return
 			}
 		}
@@ -39,7 +42,6 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			Result: strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, shortURL), "\n"),
 		}
 
-		
 		res.WriteHeader(http.StatusCreated)
 
 		// Cериализуем ответ сервера
