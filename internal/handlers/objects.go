@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PerfectStepCoder/shorturl/internal/models"
-	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"log"
 	"net/http"
+
+	"github.com/PerfectStepCoder/shorturl/internal/models"
+	"github.com/PerfectStepCoder/shorturl/internal/storage"
 )
 
 func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
@@ -25,7 +26,7 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
-				http.Error(res, fmt.Sprintf("URL alredy exist: %s", ue.ExistURL), http.StatusConflict)
+				http.Error(res, ue.ExistURL, http.StatusConflict)
 				return
 			}
 		}
@@ -72,7 +73,7 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
-				http.Error(res, fmt.Sprintf("URL alredy exist: %s", ue.ExistURL), http.StatusConflict)
+				http.Error(res, ue.ExistURL, http.StatusConflict)
 				return
 			}
 		}

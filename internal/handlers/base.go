@@ -3,11 +3,12 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/PerfectStepCoder/shorturl/internal/storage"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
@@ -27,7 +28,7 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
-				http.Error(res, fmt.Sprintf("URL alredy exist: %s", ue.ExistURL), http.StatusConflict)
+				http.Error(res, ue.ExistURL, http.StatusConflict)
 				return
 			}
 		}
