@@ -21,13 +21,17 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		
+		res.Header().Set("Content-Type", "application/json")
 
 		shortURL, err := mainStorage.Save(requestFullURL.URL)
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
 				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
-				http.Error(res, originShortURL, http.StatusConflict)
+				res.WriteHeader(http.StatusConflict)
+				res.Write([]byte(originShortURL))
+				//http.Error(res, originShortURL, http.StatusConflict)
 				return
 			}
 		}
@@ -36,7 +40,7 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			Result: strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, shortURL), "\n"),
 		}
 
-		res.Header().Set("Content-Type", "application/json")
+		
 		res.WriteHeader(http.StatusCreated)
 
 		// Cериализуем ответ сервера
