@@ -30,7 +30,6 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
 				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
-				//log.Println("RESULT originShortURL:", originShortURL)
 				res.WriteHeader(http.StatusConflict)
 				resp := models.ResponseShortURL{
 					Result: originShortURL,
@@ -41,8 +40,6 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 					log.Println("Error writing response:", err)
 					return
 				}
-				log.Println("RESULT:", resp)
-				log.Println("RESULTjson:", jsonResp)
 				res.Write(jsonResp)
 				return
 			}
@@ -60,7 +57,6 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			log.Println("Error writing response:", err)
 			return
 		}
-		//log.Println("RESULT:", jsonResp)
 
 		res.Write(jsonResp)
 	}
