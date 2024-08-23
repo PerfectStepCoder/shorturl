@@ -31,9 +31,20 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			if errors.As(err, &ue) {
 				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
 				//log.Println("RESULT originShortURL:", originShortURL)
-				res.Header().Set("Content-Type", "text/plain")
 				res.WriteHeader(http.StatusConflict)
-				fmt.Fprint(res, originShortURL)
+				resp := models.ResponseShortURL{
+					Result: originShortURL,
+				}
+				// Cериализуем ответ сервера
+				jsonResp, err := json.Marshal(resp)
+				if err != nil {
+					log.Println("Error writing response:", err)
+					return
+				}
+				//log.Println("RESULT:", jsonResp)
+
+				res.Write(jsonResp)
+				//fmt.Fprint(res, originShortURL)
 				//http.Error(res, originShortURL, http.StatusConflict)
 				return
 			}
