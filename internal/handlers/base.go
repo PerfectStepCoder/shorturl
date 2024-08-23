@@ -29,7 +29,9 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
 				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
-				http.Error(res, originShortURL, http.StatusConflict)
+				//http.Error(res, originShortURL, http.StatusConflict)
+				res.WriteHeader(http.StatusConflict)
+				res.Write([]byte(originShortURL))
 				return
 			}
 		}
