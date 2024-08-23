@@ -33,9 +33,10 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 				return
 			}
 		}
-		shortURLfull := fmt.Sprintf("%s/%s", baseURL, shortURL)
+		shortURLfull := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, shortURL), "\n")
 		res.WriteHeader(http.StatusCreated)
-		res.Header().Set("content-type", "text/plain")
+		//res.Header().Set("content-type", "text/plain")
+		res.Header().Set("Content-Type", "application/json")
 		if _, err := res.Write([]byte(shortURLfull)); err != nil {
 			log.Println("Error writing response:", err)
 		}
