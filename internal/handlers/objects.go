@@ -84,7 +84,7 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 		var resp []models.ResponseCorrelationURL
 		for _, value := range shortURLs {
 			resp = append(resp, models.ResponseCorrelationURL{
-				CorrelationID: value, ShortURL: fmt.Sprintf("%s/%s", baseURL, value),
+				CorrelationID: value, ShortURL: strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, value), "\n"),
 			})
 		}
 
@@ -97,6 +97,5 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 			log.Println("Error writing response:", err)
 			return
 		}
-
 	}
 }
