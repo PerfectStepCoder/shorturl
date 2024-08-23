@@ -117,7 +117,7 @@ func (s *StorageInPostgres) Save(value string) (string, error) {
 		var pge *pgconn.PgError
 		if errors.As(err, &pge) {
 			if pge.Code == pgerrcode.UniqueViolation {
-				log.Println("Error: A url with the same value already exists.")
+				log.Printf("Error: A url with the same value already exists. URL: %s, hash: %s", value, hashKey)
 				return hashKey, NewUniqURLError(value, hashKey)
 			}
 		}
