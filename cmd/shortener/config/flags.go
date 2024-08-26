@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+const (
+	baseURL         = "http://localhost:8080"
+	fileStoragePath = "shorturls.data"
+)
+
 func splitHostPort(addr string) (string, int, error) {
 	parts := strings.Split(addr, ":")
 	if len(parts) != 2 {
@@ -27,12 +32,12 @@ func ParseFlags() Settings {
 	// Default
 	appSettings.ServiceNetAddress.Host = ""
 	appSettings.ServiceNetAddress.Port = 0
-	baseURL := "http://localhost:8080"
-	fileStoragePath := "shorturls.data"
 
 	flag.Var(&appSettings.ServiceNetAddress, "a", "Net address host:port")
 	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")
+	flag.StringVar(&appSettings.DatabaseDSN, "d", "", "DataBaseDSN connect to DB")
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
+	flag.BoolVar(&appSettings.SaveDBtoFile, "s", false, "Save db to file")
 	flag.Parse()
 
 	// Если есть переменные окружения они переписывают настройки
@@ -41,6 +46,9 @@ func ParseFlags() Settings {
 	}
 	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
 		appSettings.FileStoragePath = envFileStoragePath
+	}
+	if envDatabaseDSN := os.Getenv("SHORTURL_DATABASE_DSN"); envDatabaseDSN != "" {
+		appSettings.DatabaseDSN = envDatabaseDSN
 	}
 	if envRunAddr := os.Getenv("SHORTURL_SERVER_ADDRESS"); envRunAddr != "" {
 		host, port, err := splitHostPort(envRunAddr)

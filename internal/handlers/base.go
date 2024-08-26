@@ -1,16 +1,17 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-
+	"strings"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
-func ShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc {
+func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		originURLbytes, _ := io.ReadAll(req.Body)
 		defer func() {
@@ -23,10 +24,20 @@ func ShorterURL(storage storage.Storage, baseURL string) http.HandlerFunc {
 			http.Error(res, "URL not send", http.StatusBadRequest)
 			return
 		}
-		shortURL := storage.Save(originURL)
-		shortURLfull := fmt.Sprintf("%s/%s", baseURL, shortURL)
+		shortURL, err := mainStorage.Save(originURL)
+		if err != nil {
+			var ue *storage.UniqURLError
+			if errors.As(err, &ue) {
+				originShortURL := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, ue.ShortHash), "\n")
+				res.WriteHeader(http.StatusConflict)
+				res.Write([]byte(originShortURL))
+				return
+			}
+		}
+		shortURLfull := strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, shortURL), "\n")
 		res.WriteHeader(http.StatusCreated)
-		res.Header().Set("content-type", "text/plain")
+		//res.Header().Set("content-type", "text/plain")
+		res.Header().Set("Content-Type", "application/json")
 		if _, err := res.Write([]byte(shortURLfull)); err != nil {
 			log.Println("Error writing response:", err)
 		}

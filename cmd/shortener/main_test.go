@@ -32,7 +32,7 @@ func TestShorterURL(t *testing.T) {
 		{method: http.MethodPost, body: "", expectedCode: http.StatusBadRequest, expectedBody: "URL not send\n"},
 	}
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 	targetHandler := handlers.ShorterURL(inMemoryStorage, testBaseURL)
 
 	srv := httptest.NewServer(targetHandler)
@@ -69,9 +69,9 @@ func TestShorterURL(t *testing.T) {
 
 func TestGetURL(t *testing.T) {
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
-	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
-	assert.Equal(t, shortString, "42b3e75f92")
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
+	shortString, _ := inMemoryStorage.Save("https://yandex.ru/")
+	assert.Equal(t, shortString, "77fca5950e")
 
 	testCases := []struct {
 		method       string
@@ -114,9 +114,7 @@ func TestGetURL(t *testing.T) {
 
 func TestObjectsURL(t *testing.T) {
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
-	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
-	assert.Equal(t, shortString, "42b3e75f92")
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 
 	testCases := []struct {
 		method       string
@@ -156,9 +154,9 @@ func TestObjectsURL(t *testing.T) {
 				t.Errorf("Код ответа не совпадает с ожидаемым. Ожидалось: %d, Получено: %d", tc.expectedCode, resp.StatusCode())
 			}
 
-			// Проверка содержимого теля запроса
+			// Проверка содержимого тела запроса
 			if tc.expectedBody != "" {
-				assert.JSONEq(t, tc.expectedBody, string(resp.Body()))
+				assert.JSONEq(t, tc.expectedBody, string(resp.Body()), "содержимое ответа в формате JSON не совпадает")
 			}
 		})
 	}
@@ -166,8 +164,8 @@ func TestObjectsURL(t *testing.T) {
 
 func TestGzipCompression(t *testing.T) {
 
-	inMemoryStorage := storage.NewStorage(testLengthShortURL)
-	shortString := inMemoryStorage.Save("https://practicum.yandex.ru/")
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
+	shortString, _ := inMemoryStorage.Save("https://practicum.yandex.ru/")
 	assert.Equal(t, shortString, "42b3e75f92")
 
 	testCases := []struct {
@@ -178,8 +176,8 @@ func TestGzipCompression(t *testing.T) {
 		expectedBody string
 		compress     bool
 	}{
-		{method: http.MethodPost, body: "{\"url\":\"https://practicum.yandex.ru/\"}", contentType: "application/json", compress: true, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/42b3e75f92\"}"},
-		{method: http.MethodPost, body: "{\"url\":\"https://practicum.yandex.ru/\"}", contentType: "application/xml", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/42b3e75f92\"}"},
+		{method: http.MethodPost, body: "{\"url\":\"https://yandex.ru/\"}", contentType: "application/json", compress: true, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/77fca5950e\"}"},
+		{method: http.MethodPost, body: "{\"url\":\"https://google.ru/\"}", contentType: "application/xml", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/41c9cc9cba\"}"},
 	}
 
 	routes := chi.NewRouter()
