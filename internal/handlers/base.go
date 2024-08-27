@@ -124,9 +124,28 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 	}
 }
 
+func chunkStrings(arr []string, batchSize int) [][]string {
+    var batches [][]string
+
+    // Проходим по массиву с шагом batchSize и добавляем подмассивы в batches
+    for i := 0; i < len(arr); i += batchSize {
+        end := i + batchSize
+
+        // Убедимся, что индекс конца не выходит за границы массива
+        if end > len(arr) {
+            end = len(arr)
+        }
+
+        // Добавляем подмассив в batches
+        batches = append(batches, arr[i:end])
+    }
+
+    return batches
+}
+
 func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		
+
 		// Аутентификация
 		var userUID string
 		cookies, err := req.Cookie("userUID")
@@ -158,9 +177,20 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		// Удаление
-		err = mainStorage.DeleteByUser(shortsHashURL, userUID)
-		if err != nil {
-			log.Printf("Delete error: %s", err)
+		
+		batchSize := 10  // указываем размер батча
+
+		// Разбиваем на батчи
+		result := chunkStrings(shortsHashURL, batchSize)
+	
+		for i, batch := range result {
+			log.Printf("Batch %d: %v\n", i+1, batch)
+			go func() {
+				err = mainStorage.DeleteByUser(shortsHashURL, userUID)
+				if err != nil {
+					log.Printf("Delete error: %s", err)
+				}
+			}()
 		}
 
 		res.WriteHeader(http.StatusAccepted)
