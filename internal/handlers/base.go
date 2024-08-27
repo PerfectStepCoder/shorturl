@@ -172,7 +172,7 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}()
 
 		var shortsHashURL []string
-
+		
 		err = json.Unmarshal(shortHashs, &shortsHashURL)
 		if err != nil {
 			log.Printf("Error parsing JSON: %s", err)
@@ -206,9 +206,10 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		close(inputCh)
+
 		// Ожидаем завершения всех воркеров
-		wg.Wait()
-		
+		//wg.Wait()
+
 		res.WriteHeader(http.StatusAccepted)
 	}
 }
