@@ -58,7 +58,8 @@ func initDB(config *pgx.ConnConfig) bool {
 		correlation_id TEXT NULL,
 		short VARCHAR(255) NOT NULL,
 		original TEXT NOT NULL UNIQUE,
-		user_uid VARCHAR(1024) NULL    
+		user_uid VARCHAR(1024) NULL,
+		deleted BOOLEAN DEFAULT false     
 	)`
 	_, err = urlserviceDB.Exec(context.Background(), query)
 	if err != nil {
@@ -103,6 +104,19 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	return originalURL, true
 }
 
+func (s *StorageInPostgres) IsDeleted(hashKey string) (bool, error) {
+	var isDeleted bool
+	query := `
+		SELECT deleted FROM urls WHERE short = $1
+	`
+	err := s.connectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&isDeleted)
+	if err != nil {
+		log.Printf("Failed to find original URL: %v\n", err)
+		return isDeleted, nil
+	}
+	return false, err
+}
+
 func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
 	newUUID := uuid.New()
 	hashKey := makeHash(value, s.lengthShortURL)
@@ -128,7 +142,7 @@ func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
 	return hashKey, nil
 }
 
-func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error){
+func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error) {
 	var output []ShortHashURL
 	// SQL-запрос на поиск URLs
 	query := `
@@ -154,7 +168,7 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 
 		// Добавление URL в массив
 		output = append(output, ShortHashURL{
-			ShortHash:    shortURL,
+			ShortHash:   shortURL,
 			OriginalURL: originalURL,
 		})
 	}
@@ -164,8 +178,23 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 	}
 
 	defer urls.Close()
-	
+
 	return output, nil
+}
+
+func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string) error {
+
+	// Создаем объект Batch
+	batch := &pgx.Batch{}
+
+	for _, shortHashURL := range shortsHashURL {
+		batch.Queue("UPDATE URLS SET deleted = true WHERE short = $1 and user_uid = $2", shortHashURL, userUID)
+	}
+
+	_ = s.connectionToDB.SendBatch(context.Background(), batch)
+
+	// TODO реализовать выдачу ошибки
+	return nil
 }
 
 func (s *StorageInPostgres) LoadData(pathToFile string) int {
@@ -182,7 +211,7 @@ func (s *StorageInPostgres) Close() {
 	s.connectionToDB.Close(context.Background())
 }
 
-func (s *StorageInPostgres) CorrelationSave(value string, correlationID string,  userUID string) string {
+func (s *StorageInPostgres) CorrelationSave(value string, correlationID string, userUID string) string {
 	// SQL-запрос на вставку новой записи
 	query := `
 		INSERT INTO urls (uuid, short, original, user_uid)

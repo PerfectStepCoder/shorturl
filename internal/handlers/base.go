@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/PerfectStepCoder/shorturl/internal/models"
+	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"github.com/go-chi/chi/v5"
 	"io"
 	"log"
 	"net/http"
 	"strings"
-	"github.com/PerfectStepCoder/shorturl/internal/models"
-	"github.com/PerfectStepCoder/shorturl/internal/storage"
-	"github.com/go-chi/chi/v5"
 )
 
 func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
@@ -22,7 +22,7 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 		if err != nil {
 			log.Print("No cookies")
 			userUID, _ = SetNewCookie(res)
-		}else {
+		} else {
 			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
 
@@ -58,7 +58,7 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 
 func GetURL(storage storage.Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		
+
 		shortURL := chi.URLParam(req, "id")
 		if shortURL == "" {
 			http.Error(res, "ShortURL not send", http.StatusBadRequest)
@@ -69,11 +69,15 @@ func GetURL(storage storage.Storage) http.HandlerFunc {
 			http.Error(res, "Not Found", http.StatusNotFound)
 			return
 		}
+		result, _ := storage.IsDeleted(shortURL)
+		if result {
+			res.WriteHeader(http.StatusGone)
+			return
+		}
 		res.Header().Set("Location", originURL)
 		res.WriteHeader(http.StatusTemporaryRedirect)
 	}
 }
-
 
 func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -90,7 +94,7 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 				res.WriteHeader(http.StatusUnauthorized)
 				return
 			}
-		}else {
+		} else {
 			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
 
@@ -104,7 +108,7 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 				})
 			}
 		}
-		
+
 		res.Header().Set("Content-Type", "application/json")
 
 		if len(outputURLs) == 0 {
@@ -113,9 +117,53 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 			// Cериализуем ответ сервера
 			enc := json.NewEncoder(res)
 			if err := enc.Encode(outputURLs); err != nil {
-				log.Println("Error writing response:", err)
+				log.Printf("Error writing response: %s", err)
 				return
 			}
 		}
+	}
+}
+
+func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Аутентификация
+		var userUID string
+		cookies, err := req.Cookie("userUID")
+		if err != nil {
+			log.Print("No cookies")
+			encodedUserUID := req.Header.Get("Authorization")
+			var validErr bool
+			userUID, validErr = ValidateUserUID(encodedUserUID)
+			if !validErr {
+				res.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		} else {
+			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
+		}
+
+		shortHashs, _ := io.ReadAll(req.Body)
+		defer func() {
+			if err := req.Body.Close(); err != nil {
+				log.Printf("Could not close response body: %s", err)
+			}
+		}()
+
+		// Срез строк для хранения результата
+		var shortsHashURL []string
+
+		// Парсим JSON данные
+		err = json.Unmarshal(shortHashs, &shortsHashURL)
+		if err != nil {
+			log.Printf("Error parsing JSON: %s", err)
+		}
+
+		// Удаление
+		err = mainStorage.DeleteByUser(shortsHashURL, userUID)
+		if err != nil {
+			log.Printf("Delete error: %s", err)
+		}
+
+		res.WriteHeader(http.StatusAccepted)
 	}
 }

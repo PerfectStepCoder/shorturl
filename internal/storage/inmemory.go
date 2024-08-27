@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"sync"
 	"strings"
+	"sync"
 )
 
 type StorageInMemory struct {
@@ -27,7 +27,7 @@ func (s *StorageInMemory) Save(value string, userUID string) (string, error) {
 	if exists {
 		return hashKey, NewUniqURLError(value, hashKey)
 	} else {
-		s.data[hashKey] = fmt.Sprintf("%s|%s", value, userUID) 
+		s.data[hashKey] = fmt.Sprintf("%s|%s", value, userUID)
 		return hashKey, nil
 	}
 }
@@ -40,16 +40,16 @@ func (s *StorageInMemory) Get(hashKey string) (string, bool) {
 	return parts[0], exists
 }
 
-func (s *StorageInMemory) FindByUserUID(userUID string) ([]ShortHashURL, error){
+func (s *StorageInMemory) FindByUserUID(userUID string) ([]ShortHashURL, error) {
 	var output []ShortHashURL
 
 	for shortHash, originURLwithUserUID := range s.data {
 		if strings.HasSuffix(originURLwithUserUID, userUID) {
 			parts := strings.Split(originURLwithUserUID, "|")
-			output = append(output, ShortHashURL{ShortHash: shortHash, OriginalURL: parts[0]} )
+			output = append(output, ShortHashURL{ShortHash: shortHash, OriginalURL: parts[0]})
 		}
 	}
-	
+
 	return output, nil
 }
 
@@ -96,7 +96,7 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 func (s *StorageInMemory) CorrelationSave(value string, correlationID string, userUID string) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.data[correlationID] = fmt.Sprintf("%s|%s", value, userUID) 
+	s.data[correlationID] = fmt.Sprintf("%s|%s", value, userUID)
 	return correlationID
 }
 
@@ -117,6 +117,16 @@ func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL, use
 	}
 
 	return output, nil
+}
+
+func (s *StorageInMemory) IsDeleted(hashKey string) (bool, error) {
+	// TODO нет реализации
+	return false, nil
+}
+
+func (s *StorageInMemory) DeleteByUser(shortHashURL []string, userUID string) error {
+	// TODO нет реализации
+	return nil
 }
 
 func (s *StorageInMemory) Close() {

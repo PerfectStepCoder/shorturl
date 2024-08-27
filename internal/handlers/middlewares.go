@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
+	"github.com/gorilla/securecookie"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 	"time"
-	"github.com/gorilla/securecookie"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 )
 
 func WithLogging(h http.HandlerFunc, logger *logrus.Logger) http.HandlerFunc {
@@ -76,15 +76,14 @@ func GzipCompress(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-
 var (
 	// TODO вынести данные переменные в переменные окружения
-	hashKey  = []byte("very-secret-key")   // Симметричный ключ для подписи
-	blockKey = []byte("a-lot-secret-key")  // Симметричный ключ для шифрования
+	hashKey  = []byte("very-secret-key")  // Симметричный ключ для подписи
+	blockKey = []byte("a-lot-secret-key") // Симметричный ключ для шифрования
 	sCookie  = securecookie.New(hashKey, blockKey)
 )
 
-func ValidateUserUID(cookieValue string) (string, bool){
+func ValidateUserUID(cookieValue string) (string, bool) {
 	var userUID string
 	err := sCookie.Decode("userUID", cookieValue, &userUID)
 	if err == nil {
@@ -140,7 +139,7 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 		HttpOnly: true, // Доступ только через HTTP
 		Secure:   true, // Отправка только по HTTPS
 	})
-	
+
 	w.Header().Set("Authorization", encoded)
 
 	logrus.Println("New user UID assigned:", userUID)

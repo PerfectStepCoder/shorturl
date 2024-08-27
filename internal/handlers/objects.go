@@ -21,7 +21,7 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 		if err != nil {
 			log.Print("No cookies")
 			userUID, _ = SetNewCookie(res)
-		}else {
+		} else {
 			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
 
@@ -40,7 +40,7 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		
+
 		res.Header().Set("Content-Type", "application/json")
 
 		shortURL, err := mainStorage.Save(requestFullURL.URL, userUID)
@@ -89,7 +89,7 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 		if err != nil {
 			log.Print("No cookies")
 			userUID, _ = SetNewCookie(res)
-		}else {
+		} else {
 			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
 
