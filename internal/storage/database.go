@@ -17,8 +17,9 @@ type StorageInPostgres struct {
 	connectionToDB *pgx.Conn
 	poolConnectionToDB *pgxpool.Pool // Используем пул соединений
 	lengthShortURL int
-	chashed map[string]bool
 }
+
+var cache map[string]bool = make(map[string]bool)
 
 func initDB(config *pgx.ConnConfig) bool {
 	// Подключение к стандартной БД
@@ -121,16 +122,17 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 }
 
 func (s *StorageInPostgres) IsDeleted(hashKey string) (bool, error) {
-	var isDeleted bool
-	query := `
-		SELECT deleted FROM urls WHERE short = $1
-	`
-	err := s.poolConnectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&isDeleted)
-	if err != nil {
-		log.Printf("Failed to find original URL: %v\n", err)
-		return isDeleted, nil
-	}
-	return false, err
+	//var isDeleted bool
+	// query := `
+	// 	SELECT deleted FROM urls WHERE short = $1
+	// `
+	// err := s.poolConnectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&isDeleted)
+	// if err != nil {
+	// 	log.Printf("Failed to find original URL: %v\n", err)
+	// 	return isDeleted, nil
+	// }
+	_, exists := cache[hashKey]
+	return exists, nil
 }
 
 func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
@@ -200,6 +202,11 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 
 func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string) error {
 
+	// В кеш
+	for _, v := range shortsHashURL {
+		cache[v] = true
+	}
+	
 	// Создаем объект Batch
 	batch := &pgx.Batch{}
 

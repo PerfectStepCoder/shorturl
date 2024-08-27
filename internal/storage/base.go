@@ -15,6 +15,7 @@ type Storage interface {
 	FindByUserUID(userUID string) ([]ShortHashURL, error) // поиск сокращенных ссылок от пользователя
 	IsDeleted(hashKey string) (bool, error)
 	DeleteByUser(shortHashURL []string, userUID string) error
+	//Cache(hashKey string)
 }
 
 type CorrelationURL struct {

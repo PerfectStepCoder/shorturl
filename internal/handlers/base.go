@@ -172,7 +172,7 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}()
 
 		var shortsHashURL []string
-		
+	
 		err = json.Unmarshal(shortHashs, &shortsHashURL)
 		if err != nil {
 			log.Printf("Error parsing JSON: %s", err)
