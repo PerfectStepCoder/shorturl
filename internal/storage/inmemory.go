@@ -1,9 +1,11 @@
 package storage
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"sync"
+	"strings"
 )
 
 type StorageInMemory struct {
@@ -16,7 +18,7 @@ func NewStorageInMemory(lengthShortURL int) (*StorageInMemory, error) {
 	return &StorageInMemory{data: make(map[string]string), lengthShortURL: lengthShortURL}, nil
 }
 
-func (s *StorageInMemory) Save(value string) (string, error) {
+func (s *StorageInMemory) Save(value string, userUID string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	hashKey := makeHash(value, s.lengthShortURL)
@@ -25,7 +27,7 @@ func (s *StorageInMemory) Save(value string) (string, error) {
 	if exists {
 		return hashKey, NewUniqURLError(value, hashKey)
 	} else {
-		s.data[hashKey] = value
+		s.data[hashKey] = fmt.Sprintf("%s|%s", value, userUID) 
 		return hashKey, nil
 	}
 }
@@ -34,7 +36,21 @@ func (s *StorageInMemory) Get(hashKey string) (string, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	value, exists := s.data[hashKey]
-	return value, exists
+	parts := strings.Split(value, "|")
+	return parts[0], exists
+}
+
+func (s *StorageInMemory) FindByUserUID(userUID string) ([]ShortHashURL, error){
+	var output []ShortHashURL
+
+	for shortHash, originURLwithUserUID := range s.data {
+		if strings.HasSuffix(originURLwithUserUID, userUID) {
+			parts := strings.Split(originURLwithUserUID, "|")
+			output = append(output, ShortHashURL{ShortHash: shortHash, OriginalURL: parts[0]} )
+		}
+	}
+	
+	return output, nil
 }
 
 func (s *StorageInMemory) LoadData(pathToFile string) int {

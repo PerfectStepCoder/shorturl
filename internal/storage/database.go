@@ -57,7 +57,8 @@ func initDB(config *pgx.ConnConfig) bool {
 		uuid UUID PRIMARY KEY,
 		correlation_id TEXT NULL,
 		short VARCHAR(255) NOT NULL,
-		original TEXT NOT NULL UNIQUE
+		original TEXT NOT NULL UNIQUE,
+		user_uid VARCHAR(1024) NOT NULL    
 	)`
 	_, err = urlserviceDB.Exec(context.Background(), query)
 	if err != nil {
@@ -102,15 +103,15 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	return originalURL, true
 }
 
-func (s *StorageInPostgres) Save(value string) (string, error) {
+func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
 	newUUID := uuid.New()
 	hashKey := makeHash(value, s.lengthShortURL)
 	// SQL-запрос на вставку новой записи
 	query := `
-		INSERT INTO urls (uuid, short, original)
-		VALUES ($1, $2, $3)
+		INSERT INTO urls (uuid, short, original, user_uid)
+		VALUES ($1, $2, $3, $4)
 	`
-	_, err := s.connectionToDB.Exec(context.Background(), query, newUUID, hashKey, value)
+	_, err := s.connectionToDB.Exec(context.Background(), query, newUUID, hashKey, value, userUID)
 
 	if err != nil {
 		// Проверка на ошибку типа UniqueViolation
@@ -125,6 +126,46 @@ func (s *StorageInPostgres) Save(value string) (string, error) {
 		return hashKey, err
 	}
 	return hashKey, nil
+}
+
+func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error){
+	var output []ShortHashURL
+	// SQL-запрос на поиск URLs
+	query := `
+		SELECT short, original FROM urls WHERE user_uid = $1
+	`
+	urls, err := s.connectionToDB.Query(context.Background(), query, userUID)
+
+	if err != nil {
+		log.Printf("Failed to find original URL: %v\n", err)
+		return output, err
+	}
+
+	// Итерируем по строкам результата
+	for urls.Next() {
+		var shortURL, originalURL string
+
+		// Чтение данных в переменные
+		err = urls.Scan(&shortURL, &originalURL)
+		if err != nil {
+			log.Printf("failed to scan row: %s", err)
+			return output, err
+		}
+
+		// Добавление URL в массив
+		output = append(output, ShortHashURL{
+			ShortHash:    shortURL,
+			OriginalURL: originalURL,
+		})
+	}
+
+	if urls.Err() != nil {
+		log.Printf("error after iterating rows: %s", urls.Err())
+	}
+
+	defer urls.Close()
+	
+	return output, nil
 }
 
 func (s *StorageInPostgres) LoadData(pathToFile string) int {

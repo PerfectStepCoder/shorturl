@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
+	"github.com/gorilla/securecookie"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -72,5 +73,67 @@ func GzipCompress(h http.HandlerFunc) http.HandlerFunc {
 
 		// передаём управление хендлеру
 		h.ServeHTTP(ow, r)
+	}
+}
+
+
+var (
+	// TODO вынести данные переменные в переменные окружения
+	hashKey  = []byte("very-secret-key")   // Симметричный ключ для подписи
+	blockKey = []byte("a-lot-secret-key")  // Симметричный ключ для шифрования
+	sCookie  = securecookie.New(hashKey, blockKey)
+)
+
+func ValidateUserUID(cookieValue string) (string, bool){
+	var userUID string
+	err := sCookie.Decode("userUID", cookieValue, &userUID)
+	if err == nil {
+		// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
+		logrus.Printf("Existing valid user ID: %s", userUID)
+		return userUID, true
+	}
+	return "", false
+}
+
+// Middleware для подписанной куки с идентификатором пользователя
+func SignedCookie(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Попытка получить куку
+		cookie, err := r.Cookie("userUID")
+
+		var userUID string
+		if err == nil {
+			// Проверка и декодирование куки
+			userUID, isValid := ValidateUserUID(cookie.Value)
+			if isValid {
+				// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
+				logrus.Printf("Existing valid user ID: %s", userUID)
+				h.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		// Если куки нет или она невалидна, создаем новую
+		userUID = uuid.New().String()
+
+		// Кодирование и подпись куки
+		encoded, err := sCookie.Encode("userUID", userUID)
+		if err != nil {
+			http.Error(w, "Error signing the cookie", http.StatusInternalServerError)
+			return
+		}
+
+		// Установка куки
+		http.SetCookie(w, &http.Cookie{
+			Name:  "userUID",
+			Value: encoded,
+			Path:  "/",
+			// Опциональные параметры безопасности:
+			HttpOnly: true, // Доступ только через HTTP
+			Secure:   true, // Отправка только по HTTPS
+		})
+
+		logrus.Println("New user UID assigned:", userUID)
+		h.ServeHTTP(w, r)
 	}
 }

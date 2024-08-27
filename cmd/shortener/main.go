@@ -56,9 +56,13 @@ func main() {
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.GzipCompress(next.ServeHTTP)
 	})
-
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.SignedCookie(next.ServeHTTP)
+	})
+	
 	routes.Post("/", hdl.ShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Get("/{id}", hdl.GetURL(mainStorage))
+	routes.Get("/api/user/urls", hdl.GetURLs(mainStorage, appSettings.BaseURL))
 	routes.Post("/api/shorten", hdl.ObjectShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))

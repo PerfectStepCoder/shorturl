@@ -17,3 +17,8 @@ type ResponseCorrelationURL struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
+
+type ResponseURL struct {
+	OriginalURL   string `json:"original_url"`
+	ShortURL      string `json:"short_url"`
+}

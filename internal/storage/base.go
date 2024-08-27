@@ -9,13 +9,19 @@ import (
 
 // Storage - интерфейс для записи/чтения данных
 type Storage interface {
-	Save(value string) (string, error) // возвращает хеш ссылки
+	Save(value string, userUID string) (string, error) // возвращает хеш ссылки
 	Get(hashKey string) (string, bool) // возвращает origin ссылку или "" если не найдено
 	Close()                            // освобождение ресурсов
+	FindByUserUID(userUID string) ([]ShortHashURL, error)  // поиск сокращенных ссылок от пользователя
 }
 
 type CorrelationURL struct {
 	CorrelationID string
+	OriginalURL   string
+}
+
+type ShortHashURL struct {
+	ShortHash     string
 	OriginalURL   string
 }
 

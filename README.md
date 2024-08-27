@@ -43,9 +43,9 @@ git fetch template && git checkout template/main .github
 > go test -v cmd/shortener/main_test.go
 
 ### Запуск с флагами
-> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://0.0.0.0:9999
+> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://localhost:9999
 
-> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://0.0.0.0:9999 -d postgres://admin:password@localhost:6434/urlservice
+> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://localhost:9999 -d postgres://admin:password@localhost:6434/urlservice
 
 ### Форматирование кода
 > gofmt -s -w .

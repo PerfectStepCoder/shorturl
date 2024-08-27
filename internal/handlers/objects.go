@@ -25,7 +25,7 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 		
 		res.Header().Set("Content-Type", "application/json")
 
-		shortURL, err := mainStorage.Save(requestFullURL.URL)
+		shortURL, err := mainStorage.Save(requestFullURL.URL, "sdfsfds")
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
