@@ -178,7 +178,7 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		// Удаление
-		batchSize := 10  // указываем размер батча
+		batchSize := 15  // указываем размер батча
 		result := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи
 	
 		for i, batch := range result {
