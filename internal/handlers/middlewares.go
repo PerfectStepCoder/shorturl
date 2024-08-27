@@ -140,6 +140,8 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 		HttpOnly: true, // Доступ только через HTTP
 		Secure:   true, // Отправка только по HTTPS
 	})
+	
+	w.Header().Set("Authorization", encoded)
 
 	logrus.Println("New user UID assigned:", userUID)
 	return userUID, nil
