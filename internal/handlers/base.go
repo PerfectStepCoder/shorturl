@@ -126,6 +126,7 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 
 func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		
 		// Аутентификация
 		var userUID string
 		cookies, err := req.Cookie("userUID")
@@ -149,10 +150,8 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 			}
 		}()
 
-		// Срез строк для хранения результата
 		var shortsHashURL []string
 
-		// Парсим JSON данные
 		err = json.Unmarshal(shortHashs, &shortsHashURL)
 		if err != nil {
 			log.Printf("Error parsing JSON: %s", err)
