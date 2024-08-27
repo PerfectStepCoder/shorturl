@@ -57,7 +57,7 @@ func main() {
 		return hdl.GzipCompress(next.ServeHTTP)
 	})
 	routes.Use(func(next http.Handler) http.Handler {
-		return hdl.SignedCookie(next.ServeHTTP)
+		return hdl.CheckSignedCookie(next.ServeHTTP)
 	})
 	
 	routes.Post("/", hdl.ShorterURL(mainStorage, appSettings.BaseURL))

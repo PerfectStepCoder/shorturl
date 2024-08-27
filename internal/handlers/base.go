@@ -1,16 +1,17 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strings"
-	"encoding/json"
-	"github.com/PerfectStepCoder/shorturl/internal/storage"
+
 	"github.com/PerfectStepCoder/shorturl/internal/models"
-	
+	"github.com/PerfectStepCoder/shorturl/internal/storage"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -21,16 +22,10 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 		var userUID string
 		cookies, err := req.Cookie("userUID")
 		if err != nil {
-			res.WriteHeader(http.StatusUnauthorized)
 			log.Print("No cookies")
-			return
-		} else {
-			userUID, _ = ValidateUserUID(cookies.Value)
-			if userUID == "" {
-				log.Printf("Wrong UserUID: %s", cookies.Value)
-				res.WriteHeader(http.StatusUnauthorized)
-				return
-			}
+			userUID, _ = SetNewCookie(res)
+		}else {
+			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
 
 		originURLbytes, _ := io.ReadAll(req.Body)
