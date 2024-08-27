@@ -86,7 +86,7 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 			encodedUserUID := req.Header.Get("Authorization")
 			var validErr bool
 			userUID, validErr = ValidateUserUID(encodedUserUID)
-			if validErr == false {
+			if !validErr {
 				res.WriteHeader(http.StatusUnauthorized)
 				return
 			}
