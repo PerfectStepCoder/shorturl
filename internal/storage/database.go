@@ -57,7 +57,9 @@ func initDB(config *pgx.ConnConfig) bool {
 		uuid UUID PRIMARY KEY,
 		correlation_id TEXT NULL,
 		short VARCHAR(255) NOT NULL,
-		original TEXT NOT NULL UNIQUE
+		original TEXT NOT NULL UNIQUE,
+		user_uid VARCHAR(1024) NULL,
+		deleted BOOLEAN DEFAULT false     
 	)`
 	_, err = urlserviceDB.Exec(context.Background(), query)
 	if err != nil {
@@ -102,15 +104,28 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	return originalURL, true
 }
 
-func (s *StorageInPostgres) Save(value string) (string, error) {
+func (s *StorageInPostgres) IsDeleted(hashKey string) (bool, error) {
+	var isDeleted bool
+	query := `
+		SELECT deleted FROM urls WHERE short = $1
+	`
+	err := s.connectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&isDeleted)
+	if err != nil {
+		log.Printf("Failed to find original URL: %v\n", err)
+		return isDeleted, nil
+	}
+	return false, err
+}
+
+func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
 	newUUID := uuid.New()
 	hashKey := makeHash(value, s.lengthShortURL)
 	// SQL-запрос на вставку новой записи
 	query := `
-		INSERT INTO urls (uuid, short, original)
-		VALUES ($1, $2, $3)
+		INSERT INTO urls (uuid, short, original, user_uid)
+		VALUES ($1, $2, $3, $4)
 	`
-	_, err := s.connectionToDB.Exec(context.Background(), query, newUUID, hashKey, value)
+	_, err := s.connectionToDB.Exec(context.Background(), query, newUUID, hashKey, value, userUID)
 
 	if err != nil {
 		// Проверка на ошибку типа UniqueViolation
@@ -127,6 +142,61 @@ func (s *StorageInPostgres) Save(value string) (string, error) {
 	return hashKey, nil
 }
 
+func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error) {
+	var output []ShortHashURL
+	// SQL-запрос на поиск URLs
+	query := `
+		SELECT short, original FROM urls WHERE user_uid = $1
+	`
+	urls, err := s.connectionToDB.Query(context.Background(), query, userUID)
+
+	if err != nil {
+		log.Printf("Failed to find original URL: %v\n", err)
+		return output, err
+	}
+
+	// Итерируем по строкам результата
+	for urls.Next() {
+		var shortURL, originalURL string
+
+		// Чтение данных в переменные
+		err = urls.Scan(&shortURL, &originalURL)
+		if err != nil {
+			log.Printf("failed to scan row: %s", err)
+			return output, err
+		}
+
+		// Добавление URL в массив
+		output = append(output, ShortHashURL{
+			ShortHash:   shortURL,
+			OriginalURL: originalURL,
+		})
+	}
+
+	if urls.Err() != nil {
+		log.Printf("error after iterating rows: %s", urls.Err())
+	}
+
+	defer urls.Close()
+
+	return output, nil
+}
+
+func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string) error {
+
+	// Создаем объект Batch
+	batch := &pgx.Batch{}
+
+	for _, shortHashURL := range shortsHashURL {
+		batch.Queue("UPDATE URLS SET deleted = true WHERE short = $1 and user_uid = $2", shortHashURL, userUID)
+	}
+
+	_ = s.connectionToDB.SendBatch(context.Background(), batch)
+
+	// TODO реализовать выдачу ошибки
+	return nil
+}
+
 func (s *StorageInPostgres) LoadData(pathToFile string) int {
 	// TODO реализовать загрузку БД из дампа
 	return 0
@@ -141,13 +211,13 @@ func (s *StorageInPostgres) Close() {
 	s.connectionToDB.Close(context.Background())
 }
 
-func (s *StorageInPostgres) CorrelationSave(value string, correlationID string) string {
+func (s *StorageInPostgres) CorrelationSave(value string, correlationID string, userUID string) string {
 	// SQL-запрос на вставку новой записи
 	query := `
-		INSERT INTO urls (uuid, short, original)
-		VALUES ($1, $2, $3)
+		INSERT INTO urls (uuid, short, original, user_uid)
+		VALUES ($1, $2, $3, $4)
 	`
-	_, err := s.connectionToDB.Exec(context.Background(), query, correlationID, correlationID, value)
+	_, err := s.connectionToDB.Exec(context.Background(), query, correlationID, correlationID, value, userUID)
 
 	if err != nil {
 		log.Printf("Failed to insert new record: %v\n", err)
@@ -170,12 +240,12 @@ func (s *StorageInPostgres) CorrelationGet(correlationID string) (string, bool) 
 	return originalURL, true
 }
 
-func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) ([]string, error) {
+func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL, userUID string) ([]string, error) {
 
 	var output []string
 
 	// Подготовка SQL-запроса для вставки данных
-	query := `INSERT INTO urls (uuid, correlation_id, short, original) VALUES ($1, $2, $3, $4)`
+	query := `INSERT INTO urls (uuid, correlation_id, short, original, user_uid) VALUES ($1, $2, $3, $4, $5)`
 
 	// Начало транзакции
 	tx, err := s.connectionToDB.Begin(context.Background())
@@ -194,7 +264,7 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) (
 		output = append(output, shortURL)
 
 		// Выполнение вставки в рамках транзакции
-		_, err = tx.Exec(context.Background(), query, newUUID, item.CorrelationID, shortURL, originalURL)
+		_, err = tx.Exec(context.Background(), query, newUUID, item.CorrelationID, shortURL, originalURL, userUID)
 		if err != nil {
 			tx.Rollback(context.Background())
 			log.Printf("Failed to insert data: %v\n", err)

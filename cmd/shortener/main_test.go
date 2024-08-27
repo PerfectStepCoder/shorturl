@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/PerfectStepCoder/shorturl/internal/handlers"
+	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/PerfectStepCoder/shorturl/internal/handlers"
-	"github.com/PerfectStepCoder/shorturl/internal/storage"
-	"github.com/go-chi/chi/v5"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -68,9 +68,9 @@ func TestShorterURL(t *testing.T) {
 }
 
 func TestGetURL(t *testing.T) {
-
+	userUID := uuid.New().String()
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
-	shortString, _ := inMemoryStorage.Save("https://yandex.ru/")
+	shortString, _ := inMemoryStorage.Save("https://yandex.ru/", userUID)
 	assert.Equal(t, shortString, "77fca5950e")
 
 	testCases := []struct {
@@ -163,9 +163,9 @@ func TestObjectsURL(t *testing.T) {
 }
 
 func TestGzipCompression(t *testing.T) {
-
+	userUID := uuid.New().String()
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
-	shortString, _ := inMemoryStorage.Save("https://practicum.yandex.ru/")
+	shortString, _ := inMemoryStorage.Save("https://practicum.yandex.ru/", userUID)
 	assert.Equal(t, shortString, "42b3e75f92")
 
 	testCases := []struct {
