@@ -63,10 +63,12 @@ func initDB(config *pgx.ConnConfig) bool {
 		original TEXT NOT NULL UNIQUE,
 		user_uid VARCHAR(1024) NULL,
 		deleted BOOLEAN DEFAULT false     
-	);
-	-- Добавляем индекс на поле short
-	CREATE INDEX idx_short ON urls (short);`
-	
+	)`
+	// Тесты 11 проваливаются из за создани индекса
+	// ;
+	//-- Добавляем индекс на поле short
+	//CREATE INDEX idx_short ON urls (short);
+
 	_, err = urlserviceDB.Exec(context.Background(), query)
 	if err != nil {
 		log.Printf("Failed to create table: %v\n", err)
