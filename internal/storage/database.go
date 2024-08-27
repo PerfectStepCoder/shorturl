@@ -63,7 +63,10 @@ func initDB(config *pgx.ConnConfig) bool {
 		original TEXT NOT NULL UNIQUE,
 		user_uid VARCHAR(1024) NULL,
 		deleted BOOLEAN DEFAULT false     
-	)`
+	);
+	-- Добавляем индекс на поле short
+	CREATE INDEX idx_short ON urls (short);`
+	
 	_, err = urlserviceDB.Exec(context.Background(), query)
 	if err != nil {
 		log.Printf("Failed to create table: %v\n", err)
@@ -105,7 +108,7 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	query := `
 		SELECT original FROM urls WHERE short = $1
 	`
-	err := s.connectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&originalURL)
+	err := s.poolConnectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&originalURL)
 	if err != nil {
 		log.Printf("Failed to find original URL: %v\n", err)
 		return originalURL, false
@@ -118,7 +121,7 @@ func (s *StorageInPostgres) IsDeleted(hashKey string) (bool, error) {
 	query := `
 		SELECT deleted FROM urls WHERE short = $1
 	`
-	err := s.connectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&isDeleted)
+	err := s.poolConnectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&isDeleted)
 	if err != nil {
 		log.Printf("Failed to find original URL: %v\n", err)
 		return isDeleted, nil
@@ -134,7 +137,7 @@ func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
 		INSERT INTO urls (uuid, short, original, user_uid)
 		VALUES ($1, $2, $3, $4)
 	`
-	_, err := s.connectionToDB.Exec(context.Background(), query, newUUID, hashKey, value, userUID)
+	_, err := s.poolConnectionToDB.Exec(context.Background(), query, newUUID, hashKey, value, userUID)
 
 	if err != nil {
 		// Проверка на ошибку типа UniqueViolation
