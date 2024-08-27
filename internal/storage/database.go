@@ -182,13 +182,13 @@ func (s *StorageInPostgres) Close() {
 	s.connectionToDB.Close(context.Background())
 }
 
-func (s *StorageInPostgres) CorrelationSave(value string, correlationID string) string {
+func (s *StorageInPostgres) CorrelationSave(value string, correlationID string,  userUID string) string {
 	// SQL-запрос на вставку новой записи
 	query := `
-		INSERT INTO urls (uuid, short, original)
-		VALUES ($1, $2, $3)
+		INSERT INTO urls (uuid, short, original, user_uid)
+		VALUES ($1, $2, $3, $4)
 	`
-	_, err := s.connectionToDB.Exec(context.Background(), query, correlationID, correlationID, value)
+	_, err := s.connectionToDB.Exec(context.Background(), query, correlationID, correlationID, value, userUID)
 
 	if err != nil {
 		log.Printf("Failed to insert new record: %v\n", err)
@@ -211,12 +211,12 @@ func (s *StorageInPostgres) CorrelationGet(correlationID string) (string, bool) 
 	return originalURL, true
 }
 
-func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) ([]string, error) {
+func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL, userUID string) ([]string, error) {
 
 	var output []string
 
 	// Подготовка SQL-запроса для вставки данных
-	query := `INSERT INTO urls (uuid, correlation_id, short, original) VALUES ($1, $2, $3, $4)`
+	query := `INSERT INTO urls (uuid, correlation_id, short, original, user_uid) VALUES ($1, $2, $3, $4, $5)`
 
 	// Начало транзакции
 	tx, err := s.connectionToDB.Begin(context.Background())
@@ -235,7 +235,7 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL) (
 		output = append(output, shortURL)
 
 		// Выполнение вставки в рамках транзакции
-		_, err = tx.Exec(context.Background(), query, newUUID, item.CorrelationID, shortURL, originalURL)
+		_, err = tx.Exec(context.Background(), query, newUUID, item.CorrelationID, shortURL, originalURL, userUID)
 		if err != nil {
 			tx.Rollback(context.Background())
 			log.Printf("Failed to insert data: %v\n", err)

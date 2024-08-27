@@ -93,10 +93,10 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 	return count
 }
 
-func (s *StorageInMemory) CorrelationSave(value string, correlationID string) string {
+func (s *StorageInMemory) CorrelationSave(value string, correlationID string, userUID string) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.data[correlationID] = value
+	s.data[correlationID] = fmt.Sprintf("%s|%s", value, userUID) 
 	return correlationID
 }
 
@@ -107,13 +107,13 @@ func (s *StorageInMemory) CorrelationGet(correlationID string) (string, bool) {
 	return value, exists
 }
 
-func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL) ([]string, error) {
+func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL, userUID string) ([]string, error) {
 
 	var output []string
 
 	for _, value := range correlationURLs {
 		output = append(output, value.CorrelationID)
-		s.CorrelationSave(value.OriginalURL, value.CorrelationID)
+		s.CorrelationSave(value.OriginalURL, value.CorrelationID, userUID)
 	}
 
 	return output, nil
