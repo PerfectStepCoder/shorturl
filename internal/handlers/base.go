@@ -179,12 +179,12 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		// Удаление
-		batchSize := 50  // указываем размер батча
-		batches := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи массив кототких ссылок
+		batchSize := 15  // указываем размер батча
+		batches := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи массив коротких ссылок
 		inputCh := make(chan []string, len(batches))
 		
 		var wg sync.WaitGroup
-		numWorkers := 10
+		numWorkers := 15
 	
 		for i := 0; i < numWorkers; i++ {
 			wg.Add(1)
@@ -206,7 +206,7 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		close(inputCh)
-		
+
 		// Ожидаем завершения всех воркеров
 		wg.Wait()
 
