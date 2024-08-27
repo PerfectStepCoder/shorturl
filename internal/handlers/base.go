@@ -79,12 +79,13 @@ func GetURL(storage storage.Storage) http.HandlerFunc {
 
 
 func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {	
+	return func(res http.ResponseWriter, req *http.Request) {
+
 		// Вывод всех заголовков запроса
 		for name, values := range req.Header {
 			// Заголовок может иметь несколько значений, поэтому выводим их все
 			for _, value := range values {
-				fmt.Printf("%s: %s\n", name, value)
+				log.Printf("%s: %s\n", name, value)
 			}
 		}
 
