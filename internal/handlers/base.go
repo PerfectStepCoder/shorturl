@@ -8,7 +8,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
+	// "net/http/cookiejar"
+	// "net/url"
 	"github.com/PerfectStepCoder/shorturl/internal/models"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 
@@ -79,6 +80,20 @@ func GetURL(storage storage.Storage) http.HandlerFunc {
 
 func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {	
+		// Вывод всех заголовков запроса
+		for name, values := range req.Header {
+			// Заголовок может иметь несколько значений, поэтому выводим их все
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", name, value)
+			}
+		}
+
+		// u, _ := url.Parse("https://httpbin.org")
+		// cookies := req.Jar.Cookies(u)
+		// fmt.Println("Cookies after first request:")
+		// for _, cookie := range cookies {
+		// 	fmt.Printf("%s = %s\n", cookie.Name, cookie.Value)
+		// }
 
 		// Аутентификация
 		var userUID string
