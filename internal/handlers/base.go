@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PerfectStepCoder/shorturl/internal/models"
-	"github.com/PerfectStepCoder/shorturl/internal/storage"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/PerfectStepCoder/shorturl/internal/models"
+	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
@@ -177,11 +178,8 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		// Удаление
-		
 		batchSize := 10  // указываем размер батча
-
-		// Разбиваем на батчи
-		result := chunkStrings(shortsHashURL, batchSize)
+		result := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи
 	
 		for i, batch := range result {
 			log.Printf("Batch %d: %v\n", i+1, batch)

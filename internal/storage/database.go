@@ -4,15 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"log"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type StorageInPostgres struct {
 	connectionToDB *pgx.Conn
+	poolConnectionToDB *pgxpool.Pool // Используем пул соединений
 	lengthShortURL int
 }
 
@@ -81,10 +84,12 @@ func NewStorageInPostgres(connectionString string, lengthShortURL int) (*Storage
 
 	if initDB(config) {
 		connectionToDB, err := pgx.Connect(context.Background(), connectionString)
-		if err != nil {
+		poolConnectionToDB, err1 := pgxpool.New(context.Background(), connectionString)
+		if err != nil || err1 != nil {
 			return &newStorage, errors.New("failed to connect to database")
 		}
 		newStorage.connectionToDB = connectionToDB
+		newStorage.poolConnectionToDB = poolConnectionToDB
 		return &newStorage, nil
 	} else {
 		return &newStorage, errors.New("failed database init")
@@ -191,7 +196,7 @@ func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string)
 		batch.Queue("UPDATE URLS SET deleted = true WHERE short = $1 and user_uid = $2", shortHashURL, userUID)
 	}
 
-	_ = s.connectionToDB.SendBatch(context.Background(), batch)
+	_ = s.poolConnectionToDB.SendBatch(context.Background(), batch)
 
 	// TODO реализовать выдачу ошибки
 	return nil
