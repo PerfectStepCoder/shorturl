@@ -179,12 +179,13 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		// Удаление
-		batchSize := 15  // указываем размер батча
-		result := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи
+		batchSize := 100  // указываем размер батча
+		result := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи массив кототких ссылок
 	
 		for i, batch := range result {
 			log.Printf("Batch %d: %v\n", i+1, batch)
-			go func() {
+			// Каждый батч удаляю в горутине
+			go func() { 
 				err = mainStorage.DeleteByUser(shortsHashURL, userUID)
 				if err != nil {
 					log.Printf("Delete error: %s", err)
