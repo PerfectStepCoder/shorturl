@@ -184,7 +184,7 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		inputCh := make(chan []string, len(batches))
 		
 		var wg sync.WaitGroup
-		numWorkers := 10
+		numWorkers := 20
 	
 		for i := 0; i < numWorkers; i++ {
 			wg.Add(1)
