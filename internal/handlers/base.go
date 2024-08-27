@@ -156,7 +156,8 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 			var validErr bool
 			userUID, validErr = ValidateUserUID(encodedUserUID)
 			if !validErr {
-				res.WriteHeader(http.StatusUnauthorized)
+				//res.WriteHeader(http.StatusUnauthorized)
+				res.WriteHeader(http.StatusAccepted)
 				return
 			}
 		} else {
