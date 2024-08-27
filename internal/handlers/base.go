@@ -85,7 +85,8 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 		cookies, err := req.Cookie("userUID")
 		if err != nil {
 			log.Print("No cookies")
-			userUID, _ = SetNewCookie(res)
+			res.WriteHeader(http.StatusUnauthorized)
+			return
 		}else {
 			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
