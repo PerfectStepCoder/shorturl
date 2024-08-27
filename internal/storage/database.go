@@ -84,7 +84,11 @@ func NewStorageInPostgres(connectionString string, lengthShortURL int) (*Storage
 
 	if initDB(config) {
 		connectionToDB, err := pgx.Connect(context.Background(), connectionString)
-		poolConnectionToDB, err1 := pgxpool.New(context.Background(), connectionString)
+		poolConfig, _ := pgxpool.ParseConfig(connectionString)
+		poolConfig.MaxConns = 100
+		poolConfig.MinConns = 50
+		poolConnectionToDB, err1 := pgxpool.NewWithConfig(context.Background(), poolConfig)
+		
 		if err != nil || err1 != nil {
 			return &newStorage, errors.New("failed to connect to database")
 		}
