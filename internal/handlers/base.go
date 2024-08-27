@@ -61,22 +61,6 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 func GetURL(storage storage.Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		
-		// Аутентификация
-		// var userUID string
-		// cookies, err := req.Cookie("userUID")
-		// if err != nil {
-		// 	res.WriteHeader(http.StatusUnauthorized)
-		// 	log.Print("No cookies")
-		// 	return
-		// } else {
-		// 	userUID, _ = ValidateUserUID(cookies.Value)
-		// 	if userUID == "" {
-		// 		log.Printf("Wrong UserUID: %s", cookies.Value)
-		// 		res.WriteHeader(http.StatusUnauthorized)
-		// 		return
-		// 	}
-		// }
-
 		shortURL := chi.URLParam(req, "id")
 		if shortURL == "" {
 			http.Error(res, "ShortURL not send", http.StatusBadRequest)

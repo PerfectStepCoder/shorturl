@@ -58,7 +58,7 @@ func initDB(config *pgx.ConnConfig) bool {
 		correlation_id TEXT NULL,
 		short VARCHAR(255) NOT NULL,
 		original TEXT NOT NULL UNIQUE,
-		user_uid VARCHAR(1024) NOT NULL    
+		user_uid VARCHAR(1024) NULL    
 	)`
 	_, err = urlserviceDB.Exec(context.Background(), query)
 	if err != nil {
