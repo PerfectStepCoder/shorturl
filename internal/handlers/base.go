@@ -179,12 +179,12 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		}
 
 		// Удаление
-		batchSize := 50  // указываем размер батча
+		batchSize := 15  // указываем размер батча
 		batches := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи массив коротких ссылок shortsHashURL - []string
 		inputCh := make(chan []string, len(batches))
 		
 		var wg sync.WaitGroup
-		numWorkers := 20
+		numWorkers := 8
 	
 		for i := 0; i < numWorkers; i++ {
 			wg.Add(1)
