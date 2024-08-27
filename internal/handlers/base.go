@@ -84,17 +84,12 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 		var userUID string
 		cookies, err := req.Cookie("userUID")
 		if err != nil {
-			res.WriteHeader(http.StatusUnauthorized)
 			log.Print("No cookies")
-			return
-		} else {
-			userUID, _ = ValidateUserUID(cookies.Value)
-			if userUID == "" {
-				log.Printf("Wrong UserUID: %s", cookies.Value)
-				res.WriteHeader(http.StatusUnauthorized)
-				return
-			}
+			userUID, _ = SetNewCookie(res)
+		}else {
+			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
+
 		var outputURLs []models.ResponseURL
 
 		allURLs, err := storage.FindByUserUID(userUID)
@@ -105,11 +100,12 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 				})
 			}
 		}
+		
+		res.Header().Set("Content-Type", "application/json")
 
 		if len(outputURLs) == 0 {
 			http.Error(res, "NoContent", http.StatusNoContent)
 		} else {
-			res.Header().Set("Content-Type", "application/json")
 			// Cериализуем ответ сервера
 			enc := json.NewEncoder(res)
 			if err := enc.Encode(outputURLs); err != nil {
