@@ -63,7 +63,7 @@ func initDB(config *pgx.ConnConfig) bool {
 		original TEXT NOT NULL UNIQUE,
 		user_uid VARCHAR(1024) NULL,
 		deleted BOOLEAN DEFAULT false     
-	)`
+	); CREATE INDEX idx_user_uid ON urls (user_uid);`
 	// Тесты 11 проваливаются из за создани индекса
 	// ;
 	//-- Добавляем индекс на поле short
