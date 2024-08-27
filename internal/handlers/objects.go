@@ -25,14 +25,6 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
 
-		// Вывод всех заголовков запроса
-		for name, values := range req.Header {
-			// Заголовок может иметь несколько значений, поэтому выводим их все
-			for _, value := range values {
-				log.Printf("%s: %s\n", name, value)
-			}
-		}
-
 		// Декодирование запроса
 		var requestFullURL models.RequestFullURL
 		dec := json.NewDecoder(req.Body)
