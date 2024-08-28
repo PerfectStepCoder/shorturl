@@ -203,15 +203,15 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string) error {
 
 	// В кеш
-	for _, v := range shortsHashURL {
+	for _, v := range shortsHashURL {  // записываем удаляемый батч в кеш, для запроса GET /{id}, чтобы не обращатся к БД
 		cache[v] = true
 	}
 	
 	// Создаем объект Batch
 	batch := &pgx.Batch{}
 
-	for _, shortHashURL := range shortsHashURL {
-		batch.Queue("UPDATE URLS SET deleted = true WHERE short = $1 and user_uid = $2", shortHashURL, userUID)
+	for _, shortHashURL := range shortsHashURL {  // short - короткая ссылка
+		batch.Queue("UPDATE urls SET deleted = true WHERE short = $1 and user_uid = $2", shortHashURL, userUID)
 	}
 
 	_ = s.poolConnectionToDB.SendBatch(context.Background(), batch)
