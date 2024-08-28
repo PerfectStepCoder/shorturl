@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
@@ -31,7 +32,7 @@ func main() {
 
 	appSettings := config.ParseFlags()
 	log.Print("Settings:\n", appSettings, "\n")
-
+	log.Printf("Count core: %d\n", runtime.NumCPU())
 	if appSettings.DatabaseDSN != "" {
 		var err error
 		mainStorage, err = storage.NewStorageInPostgres(appSettings.DatabaseDSN, lengthShortURL)

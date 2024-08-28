@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"runtime"
 	"github.com/PerfectStepCoder/shorturl/internal/models"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -183,24 +184,24 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 		batches := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи массив коротких ссылок shortsHashURL - []string
 		inputCh := make(chan []string, len(batches))
 		
-		var wg sync.WaitGroup
-		numWorkers := 8
+		//var wg sync.WaitGroup
+		numWorkers := runtime.NumCPU()
 	
 		for i := 0; i < numWorkers; i++ {
-			wg.Add(1)
-			go func(inputCh chan []string, wg *sync.WaitGroup) {
-				defer wg.Done()
+			//wg.Add(1)
+			go func(inputCh chan []string) { //, wg *sync.WaitGroup
+				//defer wg.Done()
 				for shortsHashURL := range inputCh {
 					err = mainStorage.DeleteByUser(shortsHashURL, userUID)
 					if err != nil {
 						log.Printf("Delete error: %s", err)
 					}
 				}
-			}(inputCh, &wg)
+			}(inputCh) //, &wg
 		}
 
-		for i, batch := range batches {
-			log.Printf("Batch %d: %v\n", i+1, batch)
+		for _, batch := range batches {
+			//log.Printf("Batch %d: %v\n", i+1, batch)
 			// Каждый батч удаляю в горутине
 			inputCh <- batch
 		}
