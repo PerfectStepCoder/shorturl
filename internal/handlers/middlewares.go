@@ -137,7 +137,7 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 		Path:  "/",
 		// Опциональные параметры безопасности:
 		HttpOnly: true, // Доступ только через HTTP
-		Secure:   true, // Отправка только по HTTPS
+		Secure:   false, // Отправка только по HTTPS
 	})
 
 	w.Header().Set("Authorization", encoded)

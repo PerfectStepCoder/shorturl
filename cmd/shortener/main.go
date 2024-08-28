@@ -27,8 +27,8 @@ func main() {
 	// Создаем канал для уведомления о завершении работы
 	done := make(chan bool, 1)
 
-	//var logger, logFile = config.GetLogger()
-	//defer logFile.Close()
+	var logger, logFile = config.GetLogger()
+	defer logFile.Close()
 
 	appSettings := config.ParseFlags()
 	log.Print("Settings:\n", appSettings, "\n")
@@ -51,12 +51,12 @@ func main() {
 	routes := chi.NewRouter()
 
 	// Middleware
-	// routes.Use(func(next http.Handler) http.Handler {
-	// 	return hdl.WithLogging(next.ServeHTTP, logger)
-	// })
-	// routes.Use(func(next http.Handler) http.Handler {
-	// 	return hdl.GzipCompress(next.ServeHTTP)
-	// })
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.WithLogging(next.ServeHTTP, logger)
+	})
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.GzipCompress(next.ServeHTTP)
+	})
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.CheckSignedCookie(next.ServeHTTP)
 	})
