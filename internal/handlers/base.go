@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
+	//"sync"
 	"runtime"
 	"github.com/PerfectStepCoder/shorturl/internal/models"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
