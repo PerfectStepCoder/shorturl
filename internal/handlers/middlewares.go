@@ -174,8 +174,8 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 		} else {
-			encodedUserUID := r.Header.Get("Authorization")
-			if encodedUserUID != "" {
+			if r.Method == http.MethodGet{
+				encodedUserUID := r.Header.Get("Authorization")
 				var validErr bool
 				userUID, validErr := ValidateUserUID(encodedUserUID)
 				if validErr {
@@ -186,7 +186,7 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
-			} else {  // Создаем пользователю uid
+			} else {  // Создаем пользователю uid (методы POST DELETE PUT)
 				userUID, err := SetNewCookie(w)
 				if err == nil{
 					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
