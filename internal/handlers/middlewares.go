@@ -178,7 +178,7 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 			if encodedUserUID != "" {
 				var validErr bool
 				userUID, validErr := ValidateUserUID(encodedUserUID)
-				if !validErr {
+				if validErr {
 					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
 					h.ServeHTTP(w, r.WithContext(ctx))
 				} else {
