@@ -174,7 +174,7 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 		} else {
-			if r.Method == http.MethodGet{
+			if r.Method == http.MethodGet && r.URL.Path == "/api/user/urls" {
 				encodedUserUID := r.Header.Get("Authorization")
 				var validErr bool
 				userUID, validErr := ValidateUserUID(encodedUserUID)
