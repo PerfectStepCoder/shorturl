@@ -1,12 +1,14 @@
 package handlers
 
 import (
-	"github.com/google/uuid"
-	"github.com/gorilla/securecookie"
-	"github.com/sirupsen/logrus"
+	"context"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/securecookie"
+	"github.com/sirupsen/logrus"
 )
 
 func WithLogging(h http.HandlerFunc, logger *logrus.Logger) http.HandlerFunc {
@@ -144,4 +146,54 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 
 	logrus.Println("New user UID assigned:", userUID)
 	return userUID, nil
+}
+
+
+type contextKey string
+
+const UserKeyUID contextKey = "userUID"
+
+// Middleware для подписанной куки с идентификатором пользователя
+func Auth(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		// Попытка получить куку
+		cookie, err := r.Cookie("userUID")
+
+		if err == nil {
+			// Проверка и декодирование куки
+			userUID, isValid := ValidateUserUID(cookie.Value)
+			if isValid {
+				// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
+				logrus.Printf("Existing valid user ID: %s", userUID)
+				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+				h.ServeHTTP(w, r.WithContext(ctx))
+			} else {
+				logrus.Printf("Wrong UserUID: %s", cookie.Value)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		} else {
+			encodedUserUID := r.Header.Get("Authorization")
+			if encodedUserUID != "" {
+				var validErr bool
+				userUID, validErr := ValidateUserUID(encodedUserUID)
+				if !validErr {
+					//res.WriteHeader(http.StatusUnauthorized)
+					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+					h.ServeHTTP(w, r.WithContext(ctx))
+				} else {
+					logrus.Printf("Wrong UserUID: %s", encodedUserUID)
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+			} else {  // Создаем пользователю uid
+				userUID, err := SetNewCookie(w)
+				if err == nil{
+					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+					h.ServeHTTP(w, r.WithContext(ctx))
+				}
+			}
+		}
+	}
 }

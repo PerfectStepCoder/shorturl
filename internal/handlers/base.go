@@ -8,8 +8,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	//"sync"
-	"runtime"
 	"github.com/PerfectStepCoder/shorturl/internal/models"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -19,14 +17,7 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
 		// Аутентификация
-		var userUID string
-		cookies, err := req.Cookie("userUID")
-		if err != nil {
-			log.Print("No cookies")
-			userUID, _ = SetNewCookie(res)
-		} else {
-			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
-		}
+		userUID := fmt.Sprintf("%s", req.Context().Value(UserKeyUID))
 
 		originURLbytes, _ := io.ReadAll(req.Body)
 		defer func() {
@@ -85,20 +76,7 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
 		// Аутентификация
-		var userUID string
-		cookies, err := req.Cookie("userUID")
-		if err != nil {
-			log.Print("No cookies")
-			encodedUserUID := req.Header.Get("Authorization")
-			var validErr bool
-			userUID, validErr = ValidateUserUID(encodedUserUID)
-			if !validErr {
-				res.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		} else {
-			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
-		}
+		userUID := fmt.Sprintf("%s", req.Context().Value(UserKeyUID))
 
 		var outputURLs []models.ResponseURL
 
@@ -126,7 +104,7 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 	}
 }
 
-func chunkStrings(arr []string, batchSize int) [][]string {
+func chunkStrings(arr []string, batchSize int, userUID string) [][]string {
     var batches [][]string
 
     // Проходим по массиву с шагом batchSize и добавляем подмассивы в batches
@@ -137,33 +115,22 @@ func chunkStrings(arr []string, batchSize int) [][]string {
         if end > len(arr) {
             end = len(arr)
         }
+		
+        // Создаем новый батч с добавлением userUID
+        batch := append([]string{userUID}, arr[i:end]...)
 
         // Добавляем подмассив в batches
-        batches = append(batches, arr[i:end])
+        batches = append(batches, batch)
     }
 
     return batches
 }
 
-func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
+func DeleteURLs(mainStorage storage.Storage, inputCh chan []string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
 		// Аутентификация
-		var userUID string
-		cookies, err := req.Cookie("userUID")
-		if err != nil {
-			log.Print("No cookies")
-			encodedUserUID := req.Header.Get("Authorization")
-			var validErr bool
-			userUID, validErr = ValidateUserUID(encodedUserUID)
-			if !validErr {
-				//res.WriteHeader(http.StatusUnauthorized)
-				res.WriteHeader(http.StatusAccepted)
-				return
-			}
-		} else {
-			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
-		}
+		userUID := fmt.Sprintf("%s", req.Context().Value(UserKeyUID))
 
 		shortHashs, _ := io.ReadAll(req.Body)
 		defer func() {
@@ -174,42 +141,21 @@ func DeleteURLs(mainStorage storage.Storage) http.HandlerFunc {
 
 		var shortsHashURL []string
 	
-		err = json.Unmarshal(shortHashs, &shortsHashURL)
+		err := json.Unmarshal(shortHashs, &shortsHashURL)
 		if err != nil {
 			log.Printf("Error parsing JSON: %s", err)
 		}
 
 		// Удаление
-		batchSize := 15  // указываем размер батча
-		batches := chunkStrings(shortsHashURL, batchSize)  // разбиваем на батчи массив коротких ссылок shortsHashURL - []string
-		inputCh := make(chan []string, len(batches))
-		
-		//var wg sync.WaitGroup
-		numWorkers := runtime.NumCPU()
-	
-		for i := 0; i < numWorkers; i++ {
-			//wg.Add(1)
-			go func(inputCh chan []string) { //, wg *sync.WaitGroup
-				//defer wg.Done()
-				for shortsHashURL := range inputCh {
-					err = mainStorage.DeleteByUser(shortsHashURL, userUID)
-					if err != nil {
-						log.Printf("Delete error: %s", err)
-					}
-				}
-			}(inputCh) //, &wg
-		}
+		batchSize := 15  // указываем размер батча TOTO перенести в переменные окружения
+		batches := chunkStrings(shortsHashURL, batchSize, userUID)  // разбиваем на батчи массив коротких ссылок shortsHashURL - []string
 
 		for _, batch := range batches {
-			//log.Printf("Batch %d: %v\n", i+1, batch)
 			// Каждый батч удаляю в горутине
 			inputCh <- batch
 		}
 
-		close(inputCh)
-
-		// Ожидаем завершения всех воркеров
-		//wg.Wait()
+		
 
 		res.WriteHeader(http.StatusAccepted)
 	}
