@@ -155,8 +155,6 @@ func DeleteURLs(mainStorage storage.Storage, inputCh chan []string) http.Handler
 			inputCh <- batch
 		}
 
-		
-
 		res.WriteHeader(http.StatusAccepted)
 	}
 }

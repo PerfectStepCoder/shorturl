@@ -188,10 +188,15 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 					return
 				}
 			} else {  // Создаем пользователю uid
-				userUID, err := SetNewCookie(w)
-				if err == nil{
-					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
-					h.ServeHTTP(w, r.WithContext(ctx))
+				if r.Method == http.MethodGet {
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				} else {
+					userUID, err := SetNewCookie(w)
+					if err == nil{
+						ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+						h.ServeHTTP(w, r.WithContext(ctx))
+					}
 				}
 			}
 		}
