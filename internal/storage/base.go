@@ -9,9 +9,13 @@ import (
 
 // Storage - интерфейс для записи/чтения данных
 type Storage interface {
-	Save(value string) (string, error) // возвращает хеш ссылки
-	Get(hashKey string) (string, bool) // возвращает origin ссылку или "" если не найдено
-	Close()                            // освобождение ресурсов
+	Save(value string, userUID string) (string, error)    // возвращает хеш ссылки
+	Get(hashKey string) (string, bool)                    // возвращает origin ссылку или "" если не найдено
+	Close()                                               // освобождение ресурсов
+	FindByUserUID(userUID string) ([]ShortHashURL, error) // поиск сокращенных ссылок от пользователя
+	IsDeleted(hashKey string) (bool, error)
+	DeleteByUser(shortHashURL []string, userUID string) error
+	//Cache(hashKey string)
 }
 
 type CorrelationURL struct {
@@ -19,10 +23,15 @@ type CorrelationURL struct {
 	OriginalURL   string
 }
 
+type ShortHashURL struct {
+	ShortHash   string
+	OriginalURL string
+}
+
 type CorrelationStorage interface {
-	CorrelationSave(value string, correlationID string) string           // возвращает хеш ссылки
-	CorrelationGet(correlationID string) (string, bool)                  // возвращает origin ссылку
-	CorrelationsSave(correlationURLs []CorrelationURL) ([]string, error) // возвращает срез хеш ссылок
+	CorrelationSave(value string, correlationID string, userUID string) string           // возвращает хеш ссылки
+	CorrelationGet(correlationID string) (string, bool)                                  // возвращает origin ссылку
+	CorrelationsSave(correlationURLs []CorrelationURL, userUID string) ([]string, error) // возвращает срез хеш ссылок
 }
 
 // StorageFile - интерфейс для записи/чтения данных из файла
@@ -63,7 +72,7 @@ func (se *StorageError) Error() string {
 }
 
 type UniqURLError struct {
-	ExistURL string
+	ExistURL  string
 	ShortHash string
 }
 

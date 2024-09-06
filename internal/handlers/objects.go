@@ -15,6 +15,16 @@ import (
 func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
+		// Аутентификация
+		var userUID string
+		cookies, err := req.Cookie("userUID")
+		if err != nil {
+			log.Print("No cookies")
+			userUID, _ = SetNewCookie(res)
+		} else {
+			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
+		}
+
 		// Декодирование запроса
 		var requestFullURL models.RequestFullURL
 		dec := json.NewDecoder(req.Body)
@@ -22,10 +32,10 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		
+
 		res.Header().Set("Content-Type", "application/json")
 
-		shortURL, err := mainStorage.Save(requestFullURL.URL)
+		shortURL, err := mainStorage.Save(requestFullURL.URL, userUID)
 		if err != nil {
 			var ue *storage.UniqURLError
 			if errors.As(err, &ue) {
@@ -65,6 +75,16 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
+		// Аутентификация
+		var userUID string
+		cookies, err := req.Cookie("userUID")
+		if err != nil {
+			log.Print("No cookies")
+			userUID, _ = SetNewCookie(res)
+		} else {
+			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
+		}
+
 		// Декодирование запроса
 		var requestCorrelationURLs []models.RequestCorrelationURL
 		dec := json.NewDecoder(req.Body)
@@ -82,7 +102,7 @@ func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) h
 			})
 		}
 
-		shortURLs, err := mainStorage.CorrelationsSave(correlationURLs)
+		shortURLs, err := mainStorage.CorrelationsSave(correlationURLs, userUID)
 
 		if err != nil {
 			var ue *storage.UniqURLError

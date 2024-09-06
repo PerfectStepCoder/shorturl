@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
@@ -26,12 +27,29 @@ func main() {
 	// Создаем канал для уведомления о завершении работы
 	done := make(chan bool, 1)
 
+	// Для обработки удаления urls
+	inputCh := make(chan []string, 10000)  // TODO вынести 10000 в переменные окружения
+		
+	numWorkers := runtime.NumCPU()
+
+	for i := 0; i < numWorkers; i++ {
+		go func(inputCh chan []string) {
+			for shortsHashURL := range inputCh {
+				userUID := shortsHashURL[0]
+				err := mainStorage.DeleteByUser(shortsHashURL[1:], userUID)
+				if err != nil {
+					log.Printf("Delete error: %s", err)
+				}
+			}
+		}(inputCh)
+	}
+
 	var logger, logFile = config.GetLogger()
 	defer logFile.Close()
 
 	appSettings := config.ParseFlags()
 	log.Print("Settings:\n", appSettings, "\n")
-
+	log.Printf("Count core: %d\n", runtime.NumCPU())
 	if appSettings.DatabaseDSN != "" {
 		var err error
 		mainStorage, err = storage.NewStorageInPostgres(appSettings.DatabaseDSN, lengthShortURL)
@@ -56,9 +74,14 @@ func main() {
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.GzipCompress(next.ServeHTTP)
 	})
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.CheckSignedCookie(next.ServeHTTP)
+	})
 
-	routes.Post("/", hdl.ShorterURL(mainStorage, appSettings.BaseURL))
-	routes.Get("/{id}", hdl.GetURL(mainStorage))
+	routes.Post("/", hdl.Auth(hdl.ShorterURL(mainStorage, appSettings.BaseURL)))
+	routes.Get("/{id}", hdl.Auth(hdl.GetURL(mainStorage)))
+	routes.Get("/api/user/urls", hdl.Auth(hdl.GetURLs(mainStorage, appSettings.BaseURL)))
+	routes.Delete("/api/user/urls", hdl.Auth(hdl.DeleteURLs(mainStorage, inputCh)))
 	routes.Post("/api/shorten", hdl.ObjectShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(mainStorage, appSettings.BaseURL))
 	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
@@ -89,6 +112,7 @@ func main() {
 	// Ожидание сигнала завершения
 	<-done
 	log.Println("Shutting down server...")
+	close(inputCh)
 
 	if appSettings.DatabaseDSN == "" {
 		// Save
