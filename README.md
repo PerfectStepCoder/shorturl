@@ -54,3 +54,17 @@ git fetch template && git checkout template/main .github
 
 ### Проверка стуктурных тегов
 > go vet -structtag
+
+## Тесты производительности
+### Бенчмарки
+> cd ./internal/tests/
+> go test --bench .
+> go test -bench . -benchmem
+> go test -bench=. -cpuprofile=./base.pprof запись профиля
+> go tool pprof bench.test base.pprof  анализ в консоле
+
+### Профилирование
+> go run ./cmd/shortener/main.go
+> http://localhost:8080/debug/pprof/
+Сравнение профилей:
+> go tool pprof -top -diff_base=./base.pprof ./result.pprof

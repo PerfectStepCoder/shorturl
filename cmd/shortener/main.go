@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
-
+	_ "net/http/pprof"
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
 	hdl "github.com/PerfectStepCoder/shorturl/internal/handlers"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
@@ -77,6 +77,9 @@ func main() {
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.CheckSignedCookie(next.ServeHTTP)
 	})
+	
+	// Регистрируем pprof маршруты
+	routes.Mount("/debug/pprof/", http.DefaultServeMux)
 
 	routes.Post("/", hdl.Auth(hdl.ShorterURL(mainStorage, appSettings.BaseURL)))
 	routes.Get("/{id}", hdl.Auth(hdl.GetURL(mainStorage)))
