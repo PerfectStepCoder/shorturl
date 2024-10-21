@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
-	_ "net/http/pprof"
-	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
+
 	hdl "github.com/PerfectStepCoder/shorturl/internal/handlers"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/go-chi/chi/v5"
+
+	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
 )
 
 var mainStorage storage.PersistanceStorage
@@ -28,8 +30,8 @@ func main() {
 	done := make(chan bool, 1)
 
 	// Для обработки удаления urls
-	inputCh := make(chan []string, 10000)  // TODO вынести 10000 в переменные окружения
-		
+	inputCh := make(chan []string, 10000) // TODO вынести 10000 в переменные окружения
+
 	numWorkers := runtime.NumCPU()
 
 	for i := 0; i < numWorkers; i++ {
@@ -77,7 +79,7 @@ func main() {
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.CheckSignedCookie(next.ServeHTTP)
 	})
-	
+
 	// Регистрируем pprof маршруты
 	routes.Mount("/debug/pprof/", http.DefaultServeMux)
 

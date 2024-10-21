@@ -49,18 +49,18 @@ func BenchmarkStorageInMemory(b *testing.B) {
 	mainStorage, _ := storage.NewStorageInMemory(lengthShortURL)
 
 	b.Run("storageInMemory", func(b *testing.B) {
-        for i := 0; i < b.N; i++ {
-			
+		for i := 0; i < b.N; i++ {
+
 			b.StopTimer() // останавливаем таймер
 			rndUUID, _ := generateUUID()
 			rndURL := generateRandomLink(lengthURL)
 			b.StartTimer() // возобновляем таймер
 
-            shortURL, err := mainStorage.Save(rndURL, rndUUID)
+			shortURL, err := mainStorage.Save(rndURL, rndUUID)
 			assert.NoError(b, err)
 			foundURL, found := mainStorage.Get(shortURL)
 			assert.Equal(b, found, true)
 			assert.Equal(b, foundURL, rndURL)
-        }
-    })
-} 
+		}
+	})
+}

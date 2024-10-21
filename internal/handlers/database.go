@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func PingDatabase(databaseDSN string) http.HandlerFunc {

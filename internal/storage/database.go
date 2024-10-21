@@ -14,9 +14,9 @@ import (
 )
 
 type StorageInPostgres struct {
-	connectionToDB *pgx.Conn
+	connectionToDB     *pgx.Conn
 	poolConnectionToDB *pgxpool.Pool // Используем пул соединений
-	lengthShortURL int
+	lengthShortURL     int
 }
 
 var cache map[string]bool = make(map[string]bool)
@@ -96,7 +96,7 @@ func NewStorageInPostgres(connectionString string, lengthShortURL int) (*Storage
 		poolConfig.MaxConns = 100
 		poolConfig.MinConns = 50
 		poolConnectionToDB, err1 := pgxpool.NewWithConfig(context.Background(), poolConfig)
-		
+
 		if err != nil || err1 != nil {
 			return &newStorage, errors.New("failed to connect to database")
 		}
@@ -203,14 +203,14 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string) error {
 
 	// В кеш
-	for _, v := range shortsHashURL {  // записываем удаляемый батч в кеш, для запроса GET /{id}, чтобы не обращатся к БД
+	for _, v := range shortsHashURL { // записываем удаляемый батч в кеш, для запроса GET /{id}, чтобы не обращатся к БД
 		cache[v] = true
 	}
-	
+
 	// Создаем объект Batch
 	batch := &pgx.Batch{}
 
-	for _, shortHashURL := range shortsHashURL {  // short - короткая ссылка
+	for _, shortHashURL := range shortsHashURL { // short - короткая ссылка
 		batch.Queue("UPDATE urls SET deleted = true WHERE short = $1 and user_uid = $2", shortHashURL, userUID)
 	}
 

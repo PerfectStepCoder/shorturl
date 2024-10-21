@@ -138,7 +138,7 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 		Value: encoded,
 		Path:  "/",
 		// Опциональные параметры безопасности:
-		HttpOnly: true, // Доступ только через HTTP
+		HttpOnly: true,  // Доступ только через HTTP
 		Secure:   false, // Отправка только по HTTPS
 	})
 
@@ -147,7 +147,6 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 	logrus.Println("New user UID assigned:", userUID)
 	return userUID, nil
 }
-
 
 type contextKey string
 
@@ -186,9 +185,9 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
-			} else {  // Создаем пользователю uid (методы POST DELETE PUT)
+			} else { // Создаем пользователю uid (методы POST DELETE PUT)
 				userUID, err := SetNewCookie(w)
-				if err == nil{
+				if err == nil {
 					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
 					h.ServeHTTP(w, r.WithContext(ctx))
 				}
