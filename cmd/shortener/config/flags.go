@@ -1,3 +1,4 @@
+// Модуль для работы с флагами запуска сервиса.
 package config
 
 import (
@@ -8,9 +9,10 @@ import (
 	"strings"
 )
 
+// Настройки по умолчанию.
 const (
-	baseURL         = "http://localhost:8080"
-	fileStoragePath = "shorturls.data"
+	baseURL         = "http://localhost:8080" // базовый адрес хоста сервиса
+	fileStoragePath = "shorturls.data"        // путь к файлу хранилища ссылок
 )
 
 func splitHostPort(addr string) (string, int, error) {
@@ -26,6 +28,7 @@ func splitHostPort(addr string) (string, int, error) {
 	return parts[0], num, nil
 }
 
+// ParseFlags - функция для парсинга передаваемых флагов при старте сервиса.
 func ParseFlags() Settings {
 	appSettings := new(Settings)
 

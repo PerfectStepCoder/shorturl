@@ -1,3 +1,4 @@
+// Модуль для создания логгера
 package config
 
 import (
@@ -7,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Функция для создания логгера
+// GetLogger - функция для создания логгера
 func GetLogger() (*logrus.Logger, *os.File) {
 
 	logger := logrus.New()

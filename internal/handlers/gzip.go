@@ -1,3 +1,4 @@
+// Модуль для сжатия передаваемых данных.
 package handlers
 
 import (
@@ -6,8 +7,8 @@ import (
 	"net/http"
 )
 
-// compressWriter реализует интерфейс http.ResponseWriter и позволяет прозрачно для сервера
-// сжимать передаваемые данные и выставлять правильные HTTP-заголовки
+// compressWriter - реализует интерфейс http.ResponseWriter и позволяет прозрачно для сервера
+// сжимать передаваемые данные и выставлять правильные HTTP-заголовки.
 type compressWriter struct {
 	w  http.ResponseWriter
 	zw *gzip.Writer
@@ -20,14 +21,17 @@ func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	}
 }
 
+// Header - возвращает заголовок.
 func (c *compressWriter) Header() http.Header {
 	return c.w.Header()
 }
 
+// Write - записываем байтовую последовательность запроса.
 func (c *compressWriter) Write(p []byte) (int, error) {
 	return c.zw.Write(p)
 }
 
+// WriteHeader - записываем статус.
 func (c *compressWriter) WriteHeader(statusCode int) {
 	if statusCode < 300 {
 		c.w.Header().Set("Content-Encoding", "gzip")
@@ -59,10 +63,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Read - чтение тела запроса
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Close - освобождение ресурса
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err
@@ -70,6 +76,7 @@ func (c *compressReader) Close() error {
 	return c.zr.Close()
 }
 
+// ContentTypesForGzip - коллекция форматов передаваемых данных
 var ContentTypesForGzip = make(map[string]struct{})
 
 func init() {
