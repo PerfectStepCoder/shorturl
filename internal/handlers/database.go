@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// PingDatabase - обработчик проверки доступности базы данных.
 func PingDatabase(databaseDSN string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 

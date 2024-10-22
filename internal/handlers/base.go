@@ -1,3 +1,4 @@
+// Модуль handlers содержит обработчики запросов HTTP сервиса.
 package handlers
 
 import (
@@ -14,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// ShorterURL - обработчик ссылок.
 func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
@@ -50,6 +52,7 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	}
 }
 
+// GetURL - возвращает оригинальную ссылку по передаваемой сокращенной ссылке.
 func GetURL(storage storage.Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
@@ -73,6 +76,7 @@ func GetURL(storage storage.Storage) http.HandlerFunc {
 	}
 }
 
+// GetURLs - возвращает оригинальные ссылки по передаваемым сокращенным ссылкам.
 func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
@@ -127,6 +131,7 @@ func chunkStrings(arr []string, batchSize int, userUID string) [][]string {
 	return batches
 }
 
+// DeleteURLs - обработчик удаления ссылок.
 func DeleteURLs(mainStorage storage.Storage, inputCh chan []string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 

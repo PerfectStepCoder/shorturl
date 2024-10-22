@@ -1,3 +1,4 @@
+// Модуль содержит реализацию интерфейса хранилища для БД Postgres
 package storage
 
 import (
@@ -122,15 +123,6 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 }
 
 func (s *StorageInPostgres) IsDeleted(hashKey string) (bool, error) {
-	//var isDeleted bool
-	// query := `
-	// 	SELECT deleted FROM urls WHERE short = $1
-	// `
-	// err := s.poolConnectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&isDeleted)
-	// if err != nil {
-	// 	log.Printf("Failed to find original URL: %v\n", err)
-	// 	return isDeleted, nil
-	// }
 	_, exists := cache[hashKey]
 	return exists, nil
 }

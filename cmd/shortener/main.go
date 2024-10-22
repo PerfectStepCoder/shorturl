@@ -1,3 +1,4 @@
+// Главный модуль main для запуска HTTP сервиса.
 package main
 
 import (
@@ -17,8 +18,10 @@ import (
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
 )
 
+// mainStorage - хранилище для записи и чтения обработанных ссылок.
 var mainStorage storage.PersistanceStorage
 
+// lengthShortURL — константа длина генерируемых коротких ссылок.
 const lengthShortURL = 10
 
 func main() {
@@ -32,7 +35,7 @@ func main() {
 	// Для обработки удаления urls
 	inputCh := make(chan []string, 10000) // TODO вынести 10000 в переменные окружения
 
-	numWorkers := runtime.NumCPU()
+	numWorkers := runtime.NumCPU() // количичество воркеров для обработки массового удаления ссылок
 
 	for i := 0; i < numWorkers; i++ {
 		go func(inputCh chan []string) {
@@ -69,7 +72,7 @@ func main() {
 
 	routes := chi.NewRouter()
 
-	// Middleware
+	// Middlewares
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.WithLogging(next.ServeHTTP, logger)
 	})
@@ -80,7 +83,7 @@ func main() {
 		return hdl.CheckSignedCookie(next.ServeHTTP)
 	})
 
-	// Регистрируем pprof маршруты
+	// Регистрируем pprof маршрут
 	routes.Mount("/debug/pprof/", http.DefaultServeMux)
 
 	routes.Post("/", hdl.Auth(hdl.ShorterURL(mainStorage, appSettings.BaseURL)))

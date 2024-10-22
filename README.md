@@ -72,3 +72,8 @@ git fetch template && git checkout template/main .github
 > http://localhost:8080/debug/pprof/
 Сравнение профилей:
 > go tool pprof -top -diff_base=./base.pprof ./result.pprof
+
+## Документация
+> cd корень проекта
+> /Users/dmitrii/go/bin/godoc -http=:8088 
+-goroot=.

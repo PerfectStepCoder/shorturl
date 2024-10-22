@@ -224,3 +224,9 @@ func TestGzipCompression(t *testing.T) {
 		})
 	}
 }
+
+func Example() {
+	testLengthShortURL := 12
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
+	inMemoryStorage.Save("http://google.com", "0000-0000-0000-0000")
+}

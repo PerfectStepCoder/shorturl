@@ -1,3 +1,4 @@
+// Модуль содержит декораторы для обработки запросов авторизованных пользователей.
 package handlers
 
 import (
@@ -12,6 +13,7 @@ import (
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 )
 
+// ObjectShorterURL - обработка одной ссылоки за один запрос.
 func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
@@ -72,6 +74,7 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 	}
 }
 
+// ObjectsShorterURL - обработка несколько ссылок за один запрос.
 func ObjectsShorterURL(mainStorage storage.CorrelationStorage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 

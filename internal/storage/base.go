@@ -1,4 +1,4 @@
-// Package storage содержит функционал для персистентности данных
+// Модуль storage содержит функционал для персистентности данных.
 package storage
 
 import (
@@ -9,38 +9,40 @@ import (
 
 // Storage - интерфейс для записи/чтения данных
 type Storage interface {
-	Save(value string, userUID string) (string, error)    // возвращает хеш ссылки
-	Get(hashKey string) (string, bool)                    // возвращает origin ссылку или "" если не найдено
-	Close()                                               // освобождение ресурсов
-	FindByUserUID(userUID string) ([]ShortHashURL, error) // поиск сокращенных ссылок от пользователя
-	IsDeleted(hashKey string) (bool, error)
-	DeleteByUser(shortHashURL []string, userUID string) error
-	//Cache(hashKey string)
+	Save(value string, userUID string) (string, error)        // возвращает хеш ссылки
+	Get(hashKey string) (string, bool)                        // возвращает origin ссылку или "" если не найдено
+	Close()                                                   // освобождение ресурсов
+	FindByUserUID(userUID string) ([]ShortHashURL, error)     // поиск сокращенных ссылок от пользователя
+	IsDeleted(hashKey string) (bool, error)                   // проверяет удалена ли ссылка по ее хешу
+	DeleteByUser(shortHashURL []string, userUID string) error // удаление всех ссылок конкретного пользователя
 }
 
+// CorrelationURL - оригинальная ссылка с идентификатором.
 type CorrelationURL struct {
 	CorrelationID string
 	OriginalURL   string
 }
 
+// ShortHashURL - оригинальная ссылка с короткой обработанной.
 type ShortHashURL struct {
 	ShortHash   string
 	OriginalURL string
 }
 
+// CorrelationStorage - интерфейс для хранилища, которое хранит ссылки с идентификатором.
 type CorrelationStorage interface {
 	CorrelationSave(value string, correlationID string, userUID string) string           // возвращает хеш ссылки
 	CorrelationGet(correlationID string) (string, bool)                                  // возвращает origin ссылку
 	CorrelationsSave(correlationURLs []CorrelationURL, userUID string) ([]string, error) // возвращает срез хеш ссылок
 }
 
-// StorageFile - интерфейс для записи/чтения данных из файла
+// StorageFile - интерфейс для записи/чтения данных из файла.
 type StorageFile interface {
 	LoadData(pathToFile string) int
 	SaveData(pathToFile string) int
 }
 
-// Объединение интерфейсов
+// PersistanceStorage - Объединение интерфейсов.
 type PersistanceStorage interface {
 	Storage
 	StorageFile

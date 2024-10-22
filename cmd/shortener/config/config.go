@@ -1,3 +1,4 @@
+// Модуль config содержит настройки сервиса.
 package config
 
 import (
@@ -6,6 +7,7 @@ import (
 	"strings"
 )
 
+// NetAddress - хост на котором будет доступен сервис.
 type NetAddress struct {
 	Host string
 	Port int
@@ -31,6 +33,7 @@ func (a *NetAddress) Set(s string) error {
 	return nil
 }
 
+// Settings - все настройки сервиса.
 type Settings struct {
 	ServiceNetAddress NetAddress
 	BaseURL           string

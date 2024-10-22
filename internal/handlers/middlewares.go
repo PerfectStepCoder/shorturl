@@ -1,3 +1,4 @@
+// Модуль содержит декораторы для обработчиков.
 package handlers
 
 import (
@@ -11,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// WithLogging - декоратор логирование пользователя.
 func WithLogging(h http.HandlerFunc, logger *logrus.Logger) http.HandlerFunc {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 
@@ -35,6 +37,7 @@ func WithLogging(h http.HandlerFunc, logger *logrus.Logger) http.HandlerFunc {
 	return http.HandlerFunc(logFn)
 }
 
+// GzipCompress - декоратор сжатия данных.
 func GzipCompress(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -85,6 +88,7 @@ var (
 	sCookie  = securecookie.New(hashKey, blockKey)
 )
 
+// ValidateUserUID - декоратор валидации JWT токена.
 func ValidateUserUID(cookieValue string) (string, bool) {
 	var userUID string
 	err := sCookie.Decode("userUID", cookieValue, &userUID)
@@ -96,7 +100,7 @@ func ValidateUserUID(cookieValue string) (string, bool) {
 	return "", false
 }
 
-// Middleware для подписанной куки с идентификатором пользователя
+// CheckSignedCookie для подписанной куки с идентификатором пользователя.
 func CheckSignedCookie(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Попытка получить куку
@@ -121,6 +125,7 @@ func CheckSignedCookie(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// SetNewCookie - декоратор установки новой куки.
 func SetNewCookie(w http.ResponseWriter) (string, error) {
 	// Если куки нет или она невалидна, создаем новую
 	userUID := uuid.New().String()
@@ -150,9 +155,10 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 
 type contextKey string
 
+// UserKeyUID - идентификатор пользователя который передается в контексте.
 const UserKeyUID contextKey = "userUID"
 
-// Middleware для подписанной куки с идентификатором пользователя
+// Auth для подписанной куки с идентификатором пользователя.
 func Auth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
