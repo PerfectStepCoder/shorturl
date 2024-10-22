@@ -75,13 +75,13 @@ func (se *StorageError) Error() string {
 	return fmt.Sprintf("%v", se.Err)
 }
 
-// UniqURLError - сущность кастомного исключения. 
+// UniqURLError - сущность кастомного исключения.
 type UniqURLError struct {
 	ExistURL  string
 	ShortHash string
 }
 
-// NewUniqURLError - конструктор кастомного исключения. 
+// NewUniqURLError - конструктор кастомного исключения.
 func NewUniqURLError(existURL string, shortHash string) error {
 	return &UniqURLError{existURL, shortHash}
 }
