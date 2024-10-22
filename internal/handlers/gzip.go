@@ -76,6 +76,7 @@ func (c *compressReader) Close() error {
 	return c.zr.Close()
 }
 
+// ContentTypesForGzip - коллекция форматов передаваемых данных
 var ContentTypesForGzip = make(map[string]struct{})
 
 func init() {

@@ -55,6 +55,9 @@ git fetch template && git checkout template/main .github
 > /Users/dmitrii/go/bin/goimports -local "github.com/PerfectStepCoder/shorturl/cmd/shortener" -w main.go
 > find . -name '*.go' | xargs /Users/dmitrii/go/bin/goimports -w -local 
 
+> gofmt -l -s .
+> goimports -l .
+
 /Users/dmitrii/go/bin/goimports
 ### Проверка стуктурных тегов
 > go vet -structtag
