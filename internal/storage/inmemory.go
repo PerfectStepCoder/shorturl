@@ -9,16 +9,19 @@ import (
 	"sync"
 )
 
+// StorageInMemory - хранилище в памяти ПК.
 type StorageInMemory struct {
 	mu             sync.Mutex // синхронизация доступа к хранилищу
 	data           map[string]string
 	lengthShortURL int
 }
 
+// NewStorageInMemory - конструктор.
 func NewStorageInMemory(lengthShortURL int) (*StorageInMemory, error) {
 	return &StorageInMemory{data: make(map[string]string), lengthShortURL: lengthShortURL}, nil
 }
 
+// Save - сохранение новой ссылки.
 func (s *StorageInMemory) Save(value string, userUID string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -33,6 +36,7 @@ func (s *StorageInMemory) Save(value string, userUID string) (string, error) {
 	}
 }
 
+// Get - чтение ссылки.
 func (s *StorageInMemory) Get(hashKey string) (string, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -41,6 +45,7 @@ func (s *StorageInMemory) Get(hashKey string) (string, bool) {
 	return parts[0], exists
 }
 
+// FindByUserUID - поиск ссылок по пользовательскому UID.
 func (s *StorageInMemory) FindByUserUID(userUID string) ([]ShortHashURL, error) {
 	var output []ShortHashURL
 
@@ -54,6 +59,7 @@ func (s *StorageInMemory) FindByUserUID(userUID string) ([]ShortHashURL, error) 
 	return output, nil
 }
 
+// LoadData загрузка данных из файла
 func (s *StorageInMemory) LoadData(pathToFile string) int {
 	count := 0
 	consumer, err := NewConsumer(pathToFile)
@@ -74,6 +80,7 @@ func (s *StorageInMemory) LoadData(pathToFile string) int {
 	return count
 }
 
+// SaveData сохранение данных в файл
 func (s *StorageInMemory) SaveData(pathToFile string) int {
 	producer, err := NewProducer(pathToFile)
 	count := 0
@@ -94,6 +101,7 @@ func (s *StorageInMemory) SaveData(pathToFile string) int {
 	return count
 }
 
+// CorrelationSave - сохранение данных (ссылка и идентификатор)
 func (s *StorageInMemory) CorrelationSave(value string, correlationID string, userUID string) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -101,6 +109,7 @@ func (s *StorageInMemory) CorrelationSave(value string, correlationID string, us
 	return correlationID
 }
 
+// CorrelationGet - чтение данных (ссылка и идентификатор)
 func (s *StorageInMemory) CorrelationGet(correlationID string) (string, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -108,6 +117,7 @@ func (s *StorageInMemory) CorrelationGet(correlationID string) (string, bool) {
 	return value, exists
 }
 
+// CorrelationSave - сохранение данных (ссылок и идентификатор)
 func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL, userUID string) ([]string, error) {
 
 	var output []string
@@ -120,16 +130,19 @@ func (s *StorageInMemory) CorrelationsSave(correlationURLs []CorrelationURL, use
 	return output, nil
 }
 
+// IsDeleted - удалена ли ссылка.
 func (s *StorageInMemory) IsDeleted(hashKey string) (bool, error) {
 	// TODO нет реализации
 	return false, nil
 }
 
+// DeleteByUser - удалить ссылку по пользовательскому UUID
 func (s *StorageInMemory) DeleteByUser(shortHashURL []string, userUID string) error {
 	// TODO нет реализации
 	return nil
 }
 
+// Close - освобождение ресурсов
 func (s *StorageInMemory) Close() {
 	s.data = nil
 }

@@ -13,10 +13,12 @@ type NetAddress struct {
 	Port int
 }
 
+// String - функция печати хоста сервиса.
 func (a NetAddress) String() string {
 	return a.Host + ":" + strconv.Itoa(a.Port)
 }
 
+// Set - функция установки хоста из передоваемой строки
 func (a *NetAddress) Set(s string) error {
 	if a.Host == "" && a.Port == 0 {
 		hp := strings.Split(s, ":")

@@ -63,25 +63,30 @@ type StorageError struct {
 	Err error
 }
 
+// NewStorageError - ошибка при работе с хранилищем.
 func NewStorageError(err error) error {
 	return &StorageError{
 		Err: err,
 	}
 }
 
+// Error - реализация метода.
 func (se *StorageError) Error() string {
 	return fmt.Sprintf("%v", se.Err)
 }
 
+// UniqURLError - сущность кастомного исключения. 
 type UniqURLError struct {
 	ExistURL  string
 	ShortHash string
 }
 
+// NewUniqURLError - конструктор кастомного исключения. 
 func NewUniqURLError(existURL string, shortHash string) error {
 	return &UniqURLError{existURL, shortHash}
 }
 
+// Error - реализация метода.
 func (e *UniqURLError) Error() string {
 	return fmt.Sprintf("uniq error with %s", e.ExistURL)
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// StorageInMemory - хранилище в базе данных Postgres
 type StorageInPostgres struct {
 	connectionToDB     *pgx.Conn
 	poolConnectionToDB *pgxpool.Pool // Используем пул соединений
@@ -81,6 +82,7 @@ func initDB(config *pgx.ConnConfig) bool {
 	return true
 }
 
+// NewStorageInPostgres - конструктор
 func NewStorageInPostgres(connectionString string, lengthShortURL int) (*StorageInPostgres, error) {
 
 	newStorage := StorageInPostgres{connectionToDB: nil, lengthShortURL: lengthShortURL}
@@ -109,6 +111,7 @@ func NewStorageInPostgres(connectionString string, lengthShortURL int) (*Storage
 	}
 }
 
+// Get - чтение ссылки.
 func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	var originalURL string
 	query := `
@@ -122,11 +125,13 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	return originalURL, true
 }
 
+// IsDeleted - удалена ли ссылка.
 func (s *StorageInPostgres) IsDeleted(hashKey string) (bool, error) {
 	_, exists := cache[hashKey]
 	return exists, nil
 }
 
+// Save - сохранение новой ссылки.
 func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
 	newUUID := uuid.New()
 	hashKey := makeHash(value, s.lengthShortURL)
@@ -152,6 +157,7 @@ func (s *StorageInPostgres) Save(value string, userUID string) (string, error) {
 	return hashKey, nil
 }
 
+// FindByUserUID - поиск ссылок по пользовательскому UID.
 func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error) {
 	var output []ShortHashURL
 	// SQL-запрос на поиск URLs
@@ -192,6 +198,7 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 	return output, nil
 }
 
+// DeleteByUser - удалить ссылку по пользовательскому UUID
 func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string) error {
 
 	// В кеш
@@ -212,20 +219,24 @@ func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string)
 	return nil
 }
 
+// LoadData загрузка данных из файла
 func (s *StorageInPostgres) LoadData(pathToFile string) int {
 	// TODO реализовать загрузку БД из дампа
 	return 0
 }
 
+// SaveData сохранение данных в файл
 func (s *StorageInPostgres) SaveData(pathToFile string) int {
 	// TODO реализовать сохранение БД в дамп
 	return 0
 }
 
+// Close - освобождение ресурсов
 func (s *StorageInPostgres) Close() {
 	s.connectionToDB.Close(context.Background())
 }
 
+// CorrelationSave - сохранение данных (ссылка и идентификатор)
 func (s *StorageInPostgres) CorrelationSave(value string, correlationID string, userUID string) string {
 	// SQL-запрос на вставку новой записи
 	query := `
@@ -241,6 +252,7 @@ func (s *StorageInPostgres) CorrelationSave(value string, correlationID string, 
 	return correlationID
 }
 
+// CorrelationGet - чтение данных (ссылка и идентификатор)
 func (s *StorageInPostgres) CorrelationGet(correlationID string) (string, bool) {
 	var originalURL string
 
@@ -255,6 +267,7 @@ func (s *StorageInPostgres) CorrelationGet(correlationID string) (string, bool) 
 	return originalURL, true
 }
 
+// CorrelationSave - сохранение данных (ссылок и идентификатор)
 func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL, userUID string) ([]string, error) {
 
 	var output []string
