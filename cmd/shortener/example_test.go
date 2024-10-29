@@ -14,7 +14,7 @@ const (
 	exampleBaseURL        = "http://localhost:8080"
 )
 
-func ExampleTestShorterURL() {
+func ExampleShorterURL() {
 
 	inMemoryStorage, _ := storage.NewStorageInMemory(exampleLengthShortURL)
 	targetHandler := handlers.ShorterURL(inMemoryStorage, exampleBaseURL)
