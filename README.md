@@ -81,5 +81,6 @@ git fetch template && git checkout template/main .github
 > /Users/dmitrii/go/bin/godoc -http=:8088 
 -goroot=.
 
-
 go vet ./...      # проверка всех файлов в текущей директории и поддиректориях
+
+> go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
