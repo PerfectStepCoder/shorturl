@@ -107,22 +107,24 @@ func CheckSignedCookie(h http.HandlerFunc) http.HandlerFunc {
 		// Попытка получить куку
 		cookie, err := r.Cookie("userUID")
 
-		if err == nil {
-			// Проверка и декодирование куки
-			userUID, isValid := ValidateUserUID(cookie.Value)
-			if isValid {
-				// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
-				logrus.Printf("Existing valid user ID: %s", userUID)
-				h.ServeHTTP(w, r)
-				return
-			} else {
-				logrus.Printf("Wrong UserUID: %s", cookie.Value)
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-
+	if err != nil {
+	    h.ServeHTTP(w, r)
+	}
+	
+	// Проверка и декодирование куки
+	userUID, isValid := ValidateUserUID(cookie.Value)
+	if isValid {
+		// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
+		logrus.Printf("Existing valid user ID: %s", userUID)
 		h.ServeHTTP(w, r)
+		return
+	} else {
+		logrus.Printf("Wrong UserUID: %s", cookie.Value)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	h.ServeHTTP(w, r)
 	}
 }
 
