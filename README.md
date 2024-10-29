@@ -80,3 +80,6 @@ git fetch template && git checkout template/main .github
 > cd корень проекта
 > /Users/dmitrii/go/bin/godoc -http=:8088 
 -goroot=.
+
+
+go vet ./...      # проверка всех файлов в текущей директории и поддиректориях

@@ -31,3 +31,10 @@ func ExampleShorterURL() {
 
 	fmt.Print(resp)
 }
+
+
+func ExampleSave() {
+	testLengthShortURL := 12
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
+	inMemoryStorage.Save("http://google.com", "0000-0000-0000-0000")
+}

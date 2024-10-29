@@ -41,9 +41,10 @@ func ParseFlags() Settings {
 	flag.StringVar(&appSettings.DatabaseDSN, "d", "", "DataBaseDSN connect to DB")
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
 	flag.BoolVar(&appSettings.SaveDBtoFile, "s", false, "Save db to file")
+	flag.BoolVar(&appSettings.AddProfileRoute, "p", false, "Add profiling route")
 	flag.Parse()
 
-	// Если есть переменные окружения они переписывают настройки
+	// Если есть переменные окружния они переписывают настройки
 	if envBaseURL := os.Getenv("SHORTURL_BASE_URL"); envBaseURL != "" {
 		appSettings.BaseURL = envBaseURL
 	}

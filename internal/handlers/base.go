@@ -23,11 +23,7 @@ func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 		userUID := fmt.Sprintf("%s", req.Context().Value(UserKeyUID))
 
 		originURLbytes, _ := io.ReadAll(req.Body)
-		defer func() {
-			if err := req.Body.Close(); err != nil {
-				log.Printf("could not close response body: %v", err)
-			}
-		}()
+
 		originURL := string(originURLbytes)
 		if originURL == "" {
 			http.Error(res, "URL not send", http.StatusBadRequest)
@@ -140,17 +136,13 @@ func DeleteURLs(mainStorage storage.Storage, inputCh chan []string) http.Handler
 		userUID := fmt.Sprintf("%s", req.Context().Value(UserKeyUID))
 
 		shortHashs, _ := io.ReadAll(req.Body)
-		defer func() {
-			if err := req.Body.Close(); err != nil {
-				log.Printf("Could not close response body: %s", err)
-			}
-		}()
 
 		var shortsHashURL []string
 
 		err := json.Unmarshal(shortHashs, &shortsHashURL)
 		if err != nil {
 			log.Printf("Error parsing JSON: %s", err)
+			http.Error(res, "Bad JSON data", http.StatusBadRequest)
 		}
 
 		// Удаление

@@ -83,8 +83,10 @@ func main() {
 		return hdl.CheckSignedCookie(next.ServeHTTP)
 	})
 
-	// Регистрируем pprof маршрут
-	routes.Mount("/debug/pprof/", http.DefaultServeMux)
+	if appSettings.AddProfileRoute {
+		// Регистрируем pprof маршрут
+		routes.Mount("/debug/pprof/", http.DefaultServeMux)
+	}
 
 	routes.Post("/", hdl.Auth(hdl.ShorterURL(mainStorage, appSettings.BaseURL)))
 	routes.Get("/{id}", hdl.Auth(hdl.GetURL(mainStorage)))

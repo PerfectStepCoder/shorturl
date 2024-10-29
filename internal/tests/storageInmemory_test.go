@@ -4,7 +4,7 @@ package alltests
 import (
 	"crypto/rand"
 	"fmt"
-	"io"
+	"github.com/google/uuid"
 	"math/big"
 	"testing"
 
@@ -29,18 +29,8 @@ func generateRandomLink(lengthURL int) string {
 
 // generateUUID генерирует случайный UUID версии 4
 func generateUUID() (string, error) {
-	uuid := make([]byte, 16)
-	_, err := io.ReadFull(rand.Reader, uuid)
-	if err != nil {
-		return "", err
-	}
-
-	// Устанавливаем 4-ю версию UUID (UUID v4)
-	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Устанавливаем 4-й бит (0100) для версии
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Устанавливаем 2 старших бита для variant
-
-	// Возвращаем строку в стандартном формате UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
+	newUUID := uuid.New()
+	return newUUID.String(), nil
 }
 
 // BenchmarkStorageInMemory - тестирует хранилище ссылок в памяти

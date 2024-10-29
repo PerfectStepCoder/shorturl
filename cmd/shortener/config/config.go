@@ -42,4 +42,5 @@ type Settings struct {
 	FileStoragePath   string
 	DatabaseDSN       string
 	SaveDBtoFile      bool
+	AddProfileRoute   bool
 }

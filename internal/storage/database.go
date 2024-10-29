@@ -165,6 +165,7 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 		SELECT short, original FROM urls WHERE user_uid = $1
 	`
 	urls, err := s.connectionToDB.Query(context.Background(), query, userUID)
+	defer urls.Close()
 
 	if err != nil {
 		log.Printf("Failed to find original URL: %v\n", err)
@@ -193,8 +194,6 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 		log.Printf("error after iterating rows: %s", urls.Err())
 	}
 
-	defer urls.Close()
-
 	return output, nil
 }
 
@@ -213,10 +212,17 @@ func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string)
 		batch.Queue("UPDATE urls SET deleted = true WHERE short = $1 and user_uid = $2", shortHashURL, userUID)
 	}
 
-	_ = s.poolConnectionToDB.SendBatch(context.Background(), batch)
+	batchResults := s.poolConnectionToDB.SendBatch(context.Background(), batch)
+	defer batchResults.Close() // Закрываем BatchResults после использования
 
-	// TODO реализовать выдачу ошибки
-	return nil
+	// Обработка каждой команды в батче
+	for {
+		_, err := batchResults.Exec()
+		if err != nil {
+			log.Printf("Error executing batch command: %v", err)
+			return err
+		}
+	}
 }
 
 // LoadData загрузка данных из файла
