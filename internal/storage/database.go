@@ -165,12 +165,13 @@ func (s *StorageInPostgres) FindByUserUID(userUID string) ([]ShortHashURL, error
 		SELECT short, original FROM urls WHERE user_uid = $1
 	`
 	urls, err := s.connectionToDB.Query(context.Background(), query, userUID)
-	defer urls.Close()
-
+	
 	if err != nil {
 		log.Printf("Failed to find original URL: %v\n", err)
 		return output, err
 	}
+
+	defer urls.Close()
 
 	// Итерируем по строкам результата
 	for urls.Next() {
