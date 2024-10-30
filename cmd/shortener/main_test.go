@@ -225,3 +225,26 @@ func TestGzipCompression(t *testing.T) {
 	}
 }
 
+// func TestDelete(t *testing.T) {
+// 	userUID := uuid.New().String()
+// 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
+
+// 	testCases := []struct {
+// 		method       string
+// 		body         string
+// 		contentType  string
+// 		expectedCode int
+// 		expectedBody string
+// 		compress     bool
+// 	}{
+// 		{method: http.MethodPost, body: "{\"url\":\"https://yandex.ru/\"}", contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/77fca5950e\"}"},
+// 		{method: http.MethodPost, body: "{\"url\":\"https://google.ru/\"}", contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/41c9cc9cba\"}"},
+
+// 		{method: http.MethodPost, body: "{\"url\":\"https://google.ru/\"}", contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/41c9cc9cba\"}"},
+// 	}
+
+// 	routes := chi.NewRouter()
+// 	routes.Post("/api/shorten", handlers.GzipCompress(handlers.ObjectShorterURL(inMemoryStorage, testBaseURL)))
+// 	srv := httptest.NewServer(routes)
+
+// }

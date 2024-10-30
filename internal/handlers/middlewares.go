@@ -186,19 +186,19 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 					    h.ServeHTTP(w, r.WithContext(ctx))
 				    }
 			    }
+		} else {
+			// Проверка и декодирование куки
+			userUID, isValid := ValidateUserUID(cookie.Value)
+			if isValid {
+				// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
+				logrus.Printf("Existing valid user ID: %s", userUID)
+				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+				h.ServeHTTP(w, r.WithContext(ctx))
+			} else {
+				logrus.Printf("Wrong UserUID: %s", cookie.Value)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 		}
-		
-	        // Проверка и декодирование куки
-	        userUID, isValid := ValidateUserUID(cookie.Value)
-	        if isValid {
-		        // Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
-		        logrus.Printf("Existing valid user ID: %s", userUID)
-		        ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
-		        h.ServeHTTP(w, r.WithContext(ctx))
-	        } else {
-		        logrus.Printf("Wrong UserUID: %s", cookie.Value)
-		        w.WriteHeader(http.StatusUnauthorized)
-		        return
-	        }
 	}
 }
