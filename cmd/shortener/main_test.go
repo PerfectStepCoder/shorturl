@@ -292,7 +292,7 @@ func TestAuthApiShorten(t *testing.T) {
 }
 
 
-func TestBatch(t *testing.T) {
+func TestBatchDelete(t *testing.T) {
 
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 
@@ -311,9 +311,12 @@ func TestBatch(t *testing.T) {
 	}{
 		{method: http.MethodPost, path: "/api/shorten/batch", body: batch, contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: resultBatch},
 	}
+	
+	inputCh := make(chan []string, 10000)
 
 	routes := chi.NewRouter()
 	routes.Post("/api/shorten/batch", handlers.ObjectsShorterURL(inMemoryStorage, testBaseURL))
+	routes.Delete("/api/user/urls", handlers.Auth(handlers.DeleteURLs(mainStorage, inputCh)))
 	srv := httptest.NewServer(routes)
 	defer srv.Close()
 
@@ -334,4 +337,16 @@ func TestBatch(t *testing.T) {
 
 		})
 	}
+
+	// Удаление ссылок
+	req := resty.New().R()
+	req.Method = http.MethodDelete
+	req.URL = srv.URL + "/api/user/urls"
+	req.SetHeader("Content-Type", "application/json")
+	req.SetBody("[\"8d3f2ee8-af40-4c00-956b-da7415ba7e6e112\", \"8279bc80-2714-4767-8292-3e8328303e3f112\"]")
+	_, err := req.Send()
+	assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+	close(inputCh)
 }
+
+
