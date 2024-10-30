@@ -92,7 +92,7 @@ var (
 func ValidateUserUID(cookieValue string) (string, bool) {
 	var userUID string
 	err := sCookie.Decode("userUID", cookieValue, &userUID)
-	if err == nil {
+	if err != nil {
 	    return "", false
 	}
 	// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
