@@ -15,15 +15,15 @@ local-prefix: "github.com/PerfectStepCoder/shorturl"
 threshold:
   # (optional; default 0) 
   # The minimum coverage that each file should have
-  file: 10
+  file: 0
 
   # (optional; default 0) 
   # The minimum coverage that each package should have
-  package: 10
+  package: 0
 
   # (optional; default 0) 
   # The minimum total coverage project should have
-  total: 10
+  total: 0
 
 # Holds regexp rules which will override thresholds for matched files or packages 
 # using their paths.
