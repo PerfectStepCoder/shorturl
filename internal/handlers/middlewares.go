@@ -91,9 +91,8 @@ var (
 // ValidateUserUID - декоратор валидации JWT токена.
 func ValidateUserUID(cookieValue string) (string, bool) {
 	var userUID string
-	err := sCookie.Decode("userUID", cookieValue, &userUID)
-	if err != nil {
-	    return "", false
+	if err := sCookie.Decode("userUID", cookieValue, &userUID); err != nil {
+		return "", false
 	}
 	// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
 	logrus.Printf("Existing valid user ID: %s", userUID)
@@ -167,25 +166,25 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 		cookie, err := r.Cookie("userUID")
 
 		if err != nil {
-		    if r.Method == http.MethodGet && r.URL.Path == "/api/user/urls" {
-				    encodedUserUID := r.Header.Get("Authorization")
-				    var validErr bool
-				    userUID, validErr := ValidateUserUID(encodedUserUID)
-				    if validErr {
-					    ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
-					    h.ServeHTTP(w, r.WithContext(ctx))
-				    } else {
-					    logrus.Printf("Wrong UserUID: %s", encodedUserUID)
-					    w.WriteHeader(http.StatusUnauthorized)
-					    return
-				    }
-			    } else { // Создаем пользователю uid (методы POST DELETE PUT)
-				    userUID, err := SetNewCookie(w)
-				    if err == nil {
-					    ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
-					    h.ServeHTTP(w, r.WithContext(ctx))
-				    }
-			    }
+			if r.Method == http.MethodGet && r.URL.Path == "/api/user/urls" {
+				encodedUserUID := r.Header.Get("Authorization")
+				var validErr bool
+				userUID, validErr := ValidateUserUID(encodedUserUID)
+				if validErr {
+					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+					h.ServeHTTP(w, r.WithContext(ctx))
+				} else {
+					logrus.Printf("Wrong UserUID: %s", encodedUserUID)
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+			} else { // Создаем пользователю uid (методы POST DELETE PUT)
+				userUID, err := SetNewCookie(w)
+				if err == nil {
+					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+					h.ServeHTTP(w, r.WithContext(ctx))
+				}
+			}
 		} else {
 			// Проверка и декодирование куки
 			userUID, isValid := ValidateUserUID(cookie.Value)

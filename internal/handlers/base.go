@@ -83,13 +83,13 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 
 		allURLs, err := storage.FindByUserUID(userUID)
 		if err != nil {
-		    http.Error(res, "Error", http.StatusInternalServerError)
+			http.Error(res, "Error", http.StatusInternalServerError)
 		}
-	        for _, url := range allURLs {
-		        outputURLs = append(outputURLs, models.ResponseURL{
-			        OriginalURL: url.OriginalURL, ShortURL: fmt.Sprintf("%s/%s", baseURL, url.ShortHash),
-		        })
-	        }
+		for _, url := range allURLs {
+			outputURLs = append(outputURLs, models.ResponseURL{
+				OriginalURL: url.OriginalURL, ShortURL: fmt.Sprintf("%s/%s", baseURL, url.ShortHash),
+			})
+		}
 
 		res.Header().Set("Content-Type", "application/json")
 
