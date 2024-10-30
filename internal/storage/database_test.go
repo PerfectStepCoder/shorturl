@@ -31,14 +31,14 @@ func setupMockDB(t *testing.T) (*StorageInPostgres, pgxmock.PgxPoolIface, func()
 func TestStorageInPostgres_Save(t *testing.T) {
 	storage, mockDB, cleanup := setupMockDB(t)
 	defer cleanup()
-	
+
 	originalURL := "https://yandex.ru/"
 	targetHash := "77fca595"
 	userUID := uuid.New().String()
 
 	mockDB.ExpectExec(".*").
-	WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
-	WillReturnResult(pgxmock.NewResult("EXECUTE", 1))
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnResult(pgxmock.NewResult("EXECUTE", 1))
 
 	resultHash, err := storage.Save(originalURL, userUID)
 	assert.NoError(t, err, fmt.Sprintf("error: %s", err))
@@ -62,9 +62,8 @@ func TestStorageInPostgres_Get(t *testing.T) {
 
 	result, _ := storage.Get(targetHash)
 	//assert.True(t, found)
-	assert.Equal(t, "", result)  // TODO разобратся почему не возвращается original из метода scan
+	assert.Equal(t, "", result) // TODO разобратся почему не возвращается original из метода scan
 }
-
 
 // Пример теста для метода FindByUserUID реализовать мок для простого соеденения
 func DTestStorageInPostgres_FindByUserUID(t *testing.T) {

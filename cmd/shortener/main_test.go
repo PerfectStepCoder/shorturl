@@ -225,10 +225,10 @@ func TestGzipCompression(t *testing.T) {
 	}
 }
 
-func findInCookie(resp *resty.Response) (string, bool){  // userUUID, bool
+func findInCookie(resp *resty.Response) (string, bool) { // userUUID, bool
 	for _, cookie := range resp.Cookies() {
 		fmt.Print(cookie.Name)
-		if cookie.Name == "userUID" {  // замените "userUID" на имя искомой cookie
+		if cookie.Name == "userUID" { // замените "userUID" на имя искомой cookie
 			return cookie.Value, true
 		}
 	}
@@ -278,9 +278,9 @@ func TestAuthApiShorten(t *testing.T) {
 			req.URL = srv.URL + "/api/user/urls"
 			req.Method = http.MethodGet
 			cookie := &http.Cookie{
-				Name:  "userUID",
-				Value: userUUID,
-				Path:  "/",
+				Name:     "userUID",
+				Value:    userUUID,
+				Path:     "/",
 				HttpOnly: true,  // Доступ только через HTTP
 				Secure:   false, // Отправка только по HTTPS
 			}
@@ -290,7 +290,6 @@ func TestAuthApiShorten(t *testing.T) {
 		})
 	}
 }
-
 
 func TestBatchDelete(t *testing.T) {
 
@@ -311,7 +310,7 @@ func TestBatchDelete(t *testing.T) {
 	}{
 		{method: http.MethodPost, path: "/api/shorten/batch", body: batch, contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: resultBatch},
 	}
-	
+
 	inputCh := make(chan []string, 10000)
 
 	routes := chi.NewRouter()
@@ -348,5 +347,3 @@ func TestBatchDelete(t *testing.T) {
 	assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
 	close(inputCh)
 }
-
-

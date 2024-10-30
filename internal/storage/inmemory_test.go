@@ -15,7 +15,7 @@ const (
 
 // TestCreateURL - тестирование создание ссылки.
 func TestCreateURL(t *testing.T) {
-	
+
 	inMemoryStorage, _ := NewStorageInMemory(testLengthShortURL)
 	defer inMemoryStorage.Close()
 
@@ -31,7 +31,7 @@ func TestCreateURL(t *testing.T) {
 
 // TestDeleteURL - тестирование удаление ссылки.
 func TestDeleteURL(t *testing.T) {
-	
+
 	inMemoryStorage, _ := NewStorageInMemory(testLengthShortURL)
 	defer inMemoryStorage.Close()
 
@@ -48,7 +48,7 @@ func TestDeleteURL(t *testing.T) {
 
 // TestFindURL - тестирование поиск ссылки.
 func TestFindURL(t *testing.T) {
-	
+
 	inMemoryStorage, _ := NewStorageInMemory(testLengthShortURL)
 	defer inMemoryStorage.Close()
 
@@ -63,7 +63,7 @@ func TestFindURL(t *testing.T) {
 
 // TestCorrelationSaveGet - тестирование записи и чтения ссылок.
 func TestCorrelationSaveGet(t *testing.T) {
-	
+
 	inMemoryStorage, _ := NewStorageInMemory(testLengthShortURL)
 	defer inMemoryStorage.Close()
 
@@ -79,20 +79,20 @@ func TestCorrelationSaveGet(t *testing.T) {
 
 // TestCorrelationsSaveGet - тесты записи и чтения ссылок массивами.
 func TestCorrelationsSaveGet(t *testing.T) {
-	
+
 	inMemoryStorage, _ := NewStorageInMemory(testLengthShortURL)
 	defer inMemoryStorage.Close()
 
 	userUID := uuid.New().String()
 
 	inputs := []CorrelationURL{
-		CorrelationURL{
+		{
 			CorrelationID: uuid.New().String(),
-			OriginalURL: "https://yandex.ru/",
+			OriginalURL:   "https://yandex.ru/",
 		},
-		CorrelationURL{
+		{
 			CorrelationID: uuid.New().String(),
-			OriginalURL: "https://google.ru/",
+			OriginalURL:   "https://google.ru/",
 		},
 	}
 

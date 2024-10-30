@@ -16,17 +16,17 @@ import (
 
 // DBPool - интерфейс для пула соеденений
 type DBPool interface {
-    Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
-    Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
-    QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 	SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults
-    Close()
+	Close()
 }
 
 // StorageInMemory - хранилище в базе данных Postgres
 type StorageInPostgres struct {
 	connectionToDB     *pgx.Conn
-	poolConnectionToDB DBPool // Используем пул соединений *pgxpool.Pool 
+	poolConnectionToDB DBPool // Используем пул соединений *pgxpool.Pool
 	lengthShortURL     int
 }
 
@@ -125,7 +125,7 @@ func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	var originalURL string
 
 	query := "SELECT original FROM urls WHERE short = $1"
-		
+
 	err := s.poolConnectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&originalURL)
 	if err != nil {
 		log.Printf("Failed to find original URL: %v\n", err)
