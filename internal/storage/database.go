@@ -14,10 +14,19 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// DBPool - интерфейс для пула соеденений
+type DBPool interface {
+    Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
+    Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+    QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults
+    Close()
+}
+
 // StorageInMemory - хранилище в базе данных Postgres
 type StorageInPostgres struct {
 	connectionToDB     *pgx.Conn
-	poolConnectionToDB *pgxpool.Pool // Используем пул соединений
+	poolConnectionToDB DBPool // Используем пул соединений *pgxpool.Pool 
 	lengthShortURL     int
 }
 
@@ -114,9 +123,9 @@ func NewStorageInPostgres(connectionString string, lengthShortURL int) (*Storage
 // Get - чтение ссылки.
 func (s *StorageInPostgres) Get(hashKey string) (string, bool) {
 	var originalURL string
-	query := `
-		SELECT original FROM urls WHERE short = $1
-	`
+
+	query := "SELECT original FROM urls WHERE short = $1"
+		
 	err := s.poolConnectionToDB.QueryRow(context.Background(), query, hashKey).Scan(&originalURL)
 	if err != nil {
 		log.Printf("Failed to find original URL: %v\n", err)

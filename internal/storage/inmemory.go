@@ -31,7 +31,7 @@ func (s *StorageInMemory) Save(value string, userUID string) (string, error) {
 	if exists {
 		return hashKey, NewUniqURLError(value, hashKey)
 	} else {
-		s.data[hashKey] = fmt.Sprintf("%s|%s", value, userUID)
+		s.data[hashKey] = fmt.Sprintf("%s|%s", value, userUID)  // hash -> originURL | userUUID
 		return hashKey, nil
 	}
 }
@@ -138,7 +138,16 @@ func (s *StorageInMemory) IsDeleted(hashKey string) (bool, error) {
 
 // DeleteByUser - удалить ссылку по пользовательскому UUID
 func (s *StorageInMemory) DeleteByUser(shortHashURL []string, userUID string) error {
-	// TODO нет реализации
+	
+	for _, hash := range shortHashURL {
+		if value, exists := s.data[hash]; exists {
+			parts := strings.Split(value, "|")
+			if len(parts) == 2 && parts[1] == userUID {
+				delete(s.data, hash) // Удаляем ключ
+			}
+		}
+	}
+	// TODO продумать какое исключение передавать
 	return nil
 }
 

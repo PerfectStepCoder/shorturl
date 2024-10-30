@@ -83,4 +83,6 @@ git fetch template && git checkout template/main .github
 
 go vet ./...      # проверка всех файлов в текущей директории и поддиректориях
 
+Ищет все файлы с тестами и выполняет их
+> go test ./... 
 > go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
