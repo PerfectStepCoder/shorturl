@@ -28,7 +28,7 @@ func setupMockDB(t *testing.T) (*StorageInPostgres, pgxmock.PgxPoolIface, func()
 }
 
 // Пример теста для метода Save
-func TestStorageInPostgres_Save(t *testing.T) {
+func TestStorageInPostgresSave(t *testing.T) {
 	storage, mockDB, cleanup := setupMockDB(t)
 	defer cleanup()
 
@@ -46,7 +46,7 @@ func TestStorageInPostgres_Save(t *testing.T) {
 }
 
 // Пример теста для метода Get
-func TestStorageInPostgres_Get(t *testing.T) {
+func TestStorageInPostgresGet(t *testing.T) {
 	storage, mockDB, cleanup := setupMockDB(t)
 	defer cleanup()
 
@@ -66,7 +66,7 @@ func TestStorageInPostgres_Get(t *testing.T) {
 }
 
 // Пример теста для метода FindByUserUID реализовать мок для простого соеденения
-func DTestStorageInPostgres_FindByUserUID(t *testing.T) {
+func DtestStorageInPostgresFindByUserUID(t *testing.T) {
 	storage, mockDB, cleanup := setupMockDB(t)
 	defer cleanup()
 	userUID := uuid.New().String()
