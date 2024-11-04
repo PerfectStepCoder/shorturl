@@ -18,6 +18,11 @@ import (
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
 )
 
+// Глобальные переменные сборки
+var buildVersion = "N/A"   // версия продукта
+var buildDate = "N/A"      // дата сборки
+var buildCommit = "N/A"    // коммит сборки
+
 // mainStorage - хранилище для записи и чтения обработанных ссылок.
 var mainStorage storage.PersistanceStorage
 
@@ -25,6 +30,11 @@ var mainStorage storage.PersistanceStorage
 const lengthShortURL = 10
 
 func main() {
+	
+	fmt.Printf("Build version: %s\n", buildVersion)
+	fmt.Printf("Build date: %s\n", buildDate)
+	fmt.Printf("Build commit: %s\n", buildCommit)
+
 	// Канал для получения сигналов
 	sigs := make(chan os.Signal, 1)
 	// Уведомлять о сигнале interrupt (Ctrl+C) и сигнале завершения

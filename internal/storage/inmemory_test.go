@@ -101,3 +101,18 @@ func TestCorrelationsSaveGet(t *testing.T) {
 	assert.Equal(t, 2, len(correlationResults))
 
 }
+
+
+// TestLoadSave - тесты записи и чтения хранилища в файле.
+func TestLoadSave(t *testing.T) {
+	
+	inMemoryStorage, _ := NewStorageInMemory(testLengthShortURL)
+	defer inMemoryStorage.Close()
+	pathToFile := "noExist.db"
+
+	countLoadRecords := inMemoryStorage.LoadData(pathToFile)
+	assert.Equal(t, 0, countLoadRecords)
+
+	countSaveRecords := inMemoryStorage.SaveData(pathToFile)
+	assert.Equal(t, 0, countSaveRecords)
+}

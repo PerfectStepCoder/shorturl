@@ -91,3 +91,10 @@ go vet ./...      # проверка всех файлов в текущей д�
 
 ## Пользовательский статический анализатор (запуск)
 > go run ./cmd/staticlint/main.go ./cmd/shortener
+
+### Выводим отчет о покрытие тестами кода
+> go test ./... -coverprofile=coverage.out
+> go tool cover -html=coverage.out -o coverage.html
+
+### Запуск сборки в флагами
+> go build -ldflags="-X 'main.buildVersion=1.0.0'"

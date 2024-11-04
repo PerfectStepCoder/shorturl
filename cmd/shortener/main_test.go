@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
 )
 
 const (
@@ -68,7 +69,7 @@ func TestShorterURL(t *testing.T) {
 	}
 }
 
-func TestGetURL(t *testing.T) {
+func TestGetURLwithLoging(t *testing.T) {
 	userUID := uuid.New().String()
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
 	shortString, _ := inMemoryStorage.Save("https://yandex.ru/", userUID)
@@ -86,7 +87,9 @@ func TestGetURL(t *testing.T) {
 	}
 
 	routes := chi.NewRouter()
-	routes.Get("/{id}", handlers.GetURL(inMemoryStorage))
+	var logger, logFile = config.GetLogger()
+	defer logFile.Close()
+	routes.Get("/{id}", handlers.WithLogging(handlers.GetURL(inMemoryStorage), logger))
 	srv := httptest.NewServer(routes)
 
 	defer srv.Close()
@@ -254,7 +257,7 @@ func TestAuthApiShorten(t *testing.T) {
 
 	routes := chi.NewRouter()
 	routes.Post("/api/shorten", handlers.ObjectShorterURL(inMemoryStorage, testBaseURL))
-	routes.Get("/api/user/urls", handlers.Auth(handlers.GetURLs(inMemoryStorage, testBaseURL)))
+	routes.Get("/api/user/urls", handlers.CheckSignedCookie(handlers.Auth(handlers.GetURLs(inMemoryStorage, testBaseURL))))
 
 	srv := httptest.NewServer(routes)
 	defer srv.Close()
@@ -346,4 +349,21 @@ func TestBatchDelete(t *testing.T) {
 	_, err := req.Send()
 	assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
 	close(inputCh)
+}
+
+func TestPingDataBase(t *testing.T) {
+
+	connectionStringDB := "http://localhost:5435/DB"
+	routes := chi.NewRouter()
+	routes.Get("/api/ping", handlers.PingDatabase(connectionStringDB))
+
+	srv := httptest.NewServer(routes)
+	defer srv.Close()
+
+	req := resty.New().R()
+	req.Method = http.MethodGet
+	req.URL = srv.URL + "/api/ping"
+
+	_, err := req.Send()
+	assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
 }
