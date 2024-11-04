@@ -27,3 +27,5 @@ vendor/
 *.log
 
 *.data
+
+profile.cov
