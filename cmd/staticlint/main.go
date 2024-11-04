@@ -54,9 +54,9 @@ func main() {
 
 	// Включаем стандартные анализаторы
 	mychecks := []*analysis.Analyzer{
-        printf.Analyzer,
-        shadow.Analyzer,
-        structtag.Analyzer,
+		printf.Analyzer,
+		shadow.Analyzer,
+		structtag.Analyzer,
 	}
 
 	// Включаем все анализаторы класса SA из staticcheck

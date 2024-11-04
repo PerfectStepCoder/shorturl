@@ -13,8 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
+	"github.com/go-resty/resty/v2"
 )
 
 const (

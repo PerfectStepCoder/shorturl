@@ -7,12 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func TestNetAddress(t *testing.T) {
 
 	netAddress := NetAddress{Host: "localhost", Port: 8080}
 	assert.Equal(t, "localhost:8080", netAddress.String())
-	
+
 	// Set
 	netAnotherAddress := NetAddress{Host: "", Port: 0}
 	netAnotherAddress.Set("google:9999")

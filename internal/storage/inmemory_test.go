@@ -102,10 +102,9 @@ func TestCorrelationsSaveGet(t *testing.T) {
 
 }
 
-
 // TestLoadSave - тесты записи и чтения хранилища в файле.
 func TestLoadSave(t *testing.T) {
-	
+
 	inMemoryStorage, _ := NewStorageInMemory(testLengthShortURL)
 	defer inMemoryStorage.Close()
 	pathToFile := "noExist.db"
