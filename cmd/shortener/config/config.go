@@ -43,4 +43,5 @@ type Settings struct {
 	DatabaseDSN       string
 	SaveDBtoFile      bool
 	AddProfileRoute   bool
+	EnableTSL         bool
 }

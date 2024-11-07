@@ -8,6 +8,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"syscall"
 
@@ -110,9 +111,24 @@ func main() {
 		appSettings.ServiceNetAddress.Port)
 
 	go func() {
-		err := http.ListenAndServe(fmt.Sprintf(`%s:%d`, appSettings.ServiceNetAddress.Host,
+		var err error
+		if appSettings.EnableTSL {
+			// Путь к сертификату и ключу
+			keyFile, errServerKey := filepath.Abs("./tls_keys/server.key")
+			if errServerKey != nil {
+				fmt.Println("Ошибка получения абсолютного пути к ключу:", errServerKey)
+				return
+			}
+			certFile, errServerCrt := filepath.Abs("./tls_keys/server.crt")
+			if errServerCrt != nil {
+				fmt.Println("Ошибка получения абсолютного пути к сертификату:", errServerCrt)
+				return
+			}
+			err = http.ListenAndServeTLS(fmt.Sprintf(`%s:443`, appSettings.ServiceNetAddress.Host), certFile, keyFile, routes)
+		} else {
+			err = http.ListenAndServe(fmt.Sprintf(`%s:%d`, appSettings.ServiceNetAddress.Host,
 			appSettings.ServiceNetAddress.Port), routes)
-
+		}
 		if err != nil {
 			log.Printf("error: %s", err)
 		}

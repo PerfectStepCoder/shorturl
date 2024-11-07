@@ -40,11 +40,20 @@ func ParseFlags() Settings {
 	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")
 	flag.StringVar(&appSettings.DatabaseDSN, "d", "", "DataBaseDSN connect to DB")
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
-	flag.BoolVar(&appSettings.SaveDBtoFile, "s", false, "Save db to file")
+	flag.BoolVar(&appSettings.SaveDBtoFile, "l", false, "Save db to file")
+	flag.BoolVar(&appSettings.EnableTSL, "s", false, "TSL enable")
 	flag.BoolVar(&appSettings.AddProfileRoute, "p", false, "Add profiling route")
 	flag.Parse()
 
 	// Если есть переменные окружния они переписывают настройки
+	if envEnableTSL := os.Getenv("ENABLE_HTTPS"); envEnableTSL != "" {
+		boolValue, err := strconv.ParseBool(envEnableTSL)
+		if err != nil {
+			appSettings.EnableTSL = false
+		} else { 
+			appSettings.EnableTSL = boolValue
+		}
+	}
 	if envBaseURL := os.Getenv("SHORTURL_BASE_URL"); envBaseURL != "" {
 		appSettings.BaseURL = envBaseURL
 	}
@@ -65,6 +74,9 @@ func ParseFlags() Settings {
 	if appSettings.ServiceNetAddress.Host == "" && appSettings.ServiceNetAddress.Port == 0 {
 		appSettings.ServiceNetAddress.Host = "localhost"
 		appSettings.ServiceNetAddress.Port = 8080
+	}
+	if appSettings.EnableTSL {
+		appSettings.ServiceNetAddress.Port = 443
 	}
 	return *appSettings
 }
