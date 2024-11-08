@@ -158,8 +158,7 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 	return userUID, nil
 }
 
-
-//Auth для подписанной куки с идентификатором пользователя.
+// Auth для подписанной куки с идентификатором пользователя.
 func Auth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
