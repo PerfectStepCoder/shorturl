@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -158,47 +159,96 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 	return userUID, nil
 }
 
-// Auth для подписанной куки с идентификатором пользователя.
 func Auth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// Попытка получить куку
 		cookie, err := r.Cookie("userUID")
-
 		if err != nil {
-			if r.Method == http.MethodGet && r.URL.Path == "/api/user/urls" {
+			// Проверка метода и пути для GET запроса
+			if !errors.Is(err, http.ErrNoCookie) {
+				logrus.Error("Error getting cookie:", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			// Если нет куки
+			if r.Method == http.MethodGet {
 				encodedUserUID := r.Header.Get("Authorization")
-				var validErr bool
-				userUID, validErr := ValidateUserUID(encodedUserUID)
-				if validErr {
-					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
-					h.ServeHTTP(w, r.WithContext(ctx))
-				} else {
+				userUID, valid := ValidateUserUID(encodedUserUID)
+				if !valid {
 					logrus.Printf("Wrong UserUID: %s", encodedUserUID)
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
-			} else { // Создаем пользователю uid (методы POST DELETE PUT)
-				userUID, err := SetNewCookie(w)
-				if err != nil {
-					return
-				}
 				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
 				h.ServeHTTP(w, r.WithContext(ctx))
-			}
-		} else {
-			// Проверка и декодирование куки
-			userUID, isValid := ValidateUserUID(cookie.Value)
-			if isValid {
-				// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
-				logrus.Printf("Existing valid user ID: %s", userUID)
-				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
-				h.ServeHTTP(w, r.WithContext(ctx))
-			} else {
-				logrus.Printf("Wrong UserUID: %s", cookie.Value)
-				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
+			// Создаем пользователю uid (методы POST DELETE PUT)
+			userUID, err := SetNewCookie(w)
+			if err != nil {
+				logrus.Error("Error setting new cookie:", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+			h.ServeHTTP(w, r.WithContext(ctx))
+			return
 		}
+		// Проверка и декодирование куки
+		userUID, valid := ValidateUserUID(cookie.Value)
+		if !valid {
+			logrus.Printf("Wrong UserUID: %s", cookie.Value)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
+		logrus.Printf("Existing valid user ID: %s", userUID)
+		ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+		h.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
+
+// Auth для подписанной куки с идентификатором пользователя.
+// func AuthOld(h http.HandlerFunc) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+
+// 		// Попытка получить куку
+// 		cookie, err := r.Cookie("userUID")
+
+// 		if err != nil {
+// 			if r.Method == http.MethodGet && r.URL.Path == "/api/user/urls" {
+// 				encodedUserUID := r.Header.Get("Authorization")
+// 				var validErr bool
+// 				userUID, validErr := ValidateUserUID(encodedUserUID)
+// 				if validErr {
+// 					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+// 					h.ServeHTTP(w, r.WithContext(ctx))
+// 				} else {
+// 					logrus.Printf("Wrong UserUID: %s", encodedUserUID)
+// 					w.WriteHeader(http.StatusUnauthorized)
+// 					return
+// 				}
+// 			} else { // Создаем пользователю uid (методы POST DELETE PUT)
+// 				userUID, err := SetNewCookie(w)
+// 				if err != nil {
+// 					return
+// 				}
+// 				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+// 				h.ServeHTTP(w, r.WithContext(ctx))
+// 			}
+// 		} else {
+// 			// Проверка и декодирование куки
+// 			userUID, isValid := ValidateUserUID(cookie.Value)
+// 			if isValid {
+// 				// Кука существует и проходит проверку, продолжаем выполнение следующего обработчика
+// 				logrus.Printf("Existing valid user ID: %s", userUID)
+// 				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+// 				h.ServeHTTP(w, r.WithContext(ctx))
+// 			} else {
+// 				logrus.Printf("Wrong UserUID: %s", cookie.Value)
+// 				w.WriteHeader(http.StatusUnauthorized)
+// 				return
+// 			}
+// 		}
+// 	}
+// }
