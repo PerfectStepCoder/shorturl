@@ -1,3 +1,4 @@
+// Модуль для работы с флагами запуска сервиса.
 package config
 
 import (
@@ -8,9 +9,10 @@ import (
 	"strings"
 )
 
+// Настройки по умолчанию.
 const (
-	baseURL         = "http://localhost:8080"
-	fileStoragePath = "shorturls.data"
+	baseURL         = "http://localhost:8080" // базовый адрес хоста сервиса
+	fileStoragePath = "shorturls.data"        // путь к файлу хранилища ссылок
 )
 
 func splitHostPort(addr string) (string, int, error) {
@@ -26,6 +28,7 @@ func splitHostPort(addr string) (string, int, error) {
 	return parts[0], num, nil
 }
 
+// ParseFlags - функция для парсинга передаваемых флагов при старте сервиса.
 func ParseFlags() Settings {
 	appSettings := new(Settings)
 
@@ -38,9 +41,10 @@ func ParseFlags() Settings {
 	flag.StringVar(&appSettings.DatabaseDSN, "d", "", "DataBaseDSN connect to DB")
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
 	flag.BoolVar(&appSettings.SaveDBtoFile, "s", false, "Save db to file")
+	flag.BoolVar(&appSettings.AddProfileRoute, "p", false, "Add profiling route")
 	flag.Parse()
 
-	// Если есть переменные окружения они переписывают настройки
+	// Если есть переменные окружния они переписывают настройки
 	if envBaseURL := os.Getenv("SHORTURL_BASE_URL"); envBaseURL != "" {
 		appSettings.BaseURL = envBaseURL
 	}

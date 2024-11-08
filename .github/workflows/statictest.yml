@@ -31,3 +31,21 @@ jobs:
       - name: Run statictest
         run: |
           go vet -vettool=$(which statictest) ./...
+
+      - name: Run tests with coverage
+        run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+      
+      - name: Check test coverage
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          # Configure action using config file (option 1)
+          config: ./.testcoverage.yml
+          
+          # Configure action by specifying input parameters individually (option 2).
+          # If you are using config file (option 1) you shouldn't use these parameters, however
+          # specifing these action parameters will override appropriate config values.
+          profile: cover.out
+          local-prefix: github.com/PerfectStepCoder/shorturl
+          threshold-file: 0
+          threshold-package: 0
+          threshold-total: 35

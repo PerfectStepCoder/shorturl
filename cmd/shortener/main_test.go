@@ -10,6 +10,7 @@ import (
 	"github.com/PerfectStepCoder/shorturl/internal/handlers"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-resty/resty/v2"
@@ -68,9 +69,9 @@ func TestShorterURL(t *testing.T) {
 }
 
 func TestGetURL(t *testing.T) {
-
+	userUID := uuid.New().String()
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
-	shortString, _ := inMemoryStorage.Save("https://yandex.ru/")
+	shortString, _ := inMemoryStorage.Save("https://yandex.ru/", userUID)
 	assert.Equal(t, shortString, "77fca5950e")
 
 	testCases := []struct {
@@ -163,9 +164,9 @@ func TestObjectsURL(t *testing.T) {
 }
 
 func TestGzipCompression(t *testing.T) {
-
+	userUID := uuid.New().String()
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
-	shortString, _ := inMemoryStorage.Save("https://practicum.yandex.ru/")
+	shortString, _ := inMemoryStorage.Save("https://practicum.yandex.ru/", userUID)
 	assert.Equal(t, shortString, "42b3e75f92")
 
 	testCases := []struct {
@@ -222,4 +223,127 @@ func TestGzipCompression(t *testing.T) {
 			}
 		})
 	}
+}
+
+func findInCookie(resp *resty.Response) (string, bool) { // userUUID, bool
+	for _, cookie := range resp.Cookies() {
+		fmt.Print(cookie.Name)
+		if cookie.Name == "userUID" { // замените "userUID" на имя искомой cookie
+			return cookie.Value, true
+		}
+	}
+	return "", false
+}
+
+func TestAuthApiShorten(t *testing.T) {
+
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
+
+	testCases := []struct {
+		method       string
+		path         string
+		body         string
+		contentType  string
+		expectedCode int
+		expectedBody string
+		compress     bool
+	}{
+		{method: http.MethodPost, path: "/api/shorten", body: "{\"url\":\"https://yandex.ru/\"}", contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/77fca5950e\"}"},
+		{method: http.MethodPost, path: "/api/shorten", body: "{\"url\":\"https://google.ru/\"}", contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: "{\"result\":\"http://localhost:8080/41c9cc9cba\"}"},
+	}
+
+	routes := chi.NewRouter()
+	routes.Post("/api/shorten", handlers.ObjectShorterURL(inMemoryStorage, testBaseURL))
+	routes.Get("/api/user/urls", handlers.Auth(handlers.GetURLs(inMemoryStorage, testBaseURL)))
+
+	srv := httptest.NewServer(routes)
+	defer srv.Close()
+
+	for _, tc := range testCases {
+
+		t.Run(tc.method, func(t *testing.T) {
+			req := resty.New().R()
+			req.Method = tc.method
+			req.URL = srv.URL + tc.path
+
+			// Установка куки
+			resp, err := req.SetDebug(false).Send()
+			assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+
+			userUUID, found := findInCookie(resp)
+			assert.True(t, found, fmt.Sprintf("Не найдена установленная кука: %s", resp.Cookies()))
+
+			// Читаем записанные ссылки
+			req = resty.New().R()
+			req.URL = srv.URL + "/api/user/urls"
+			req.Method = http.MethodGet
+			cookie := &http.Cookie{
+				Name:     "userUID",
+				Value:    userUUID,
+				Path:     "/",
+				HttpOnly: true,  // Доступ только через HTTP
+				Secure:   false, // Отправка только по HTTPS
+			}
+			req.SetCookie(cookie)
+			_, err = req.SetDebug(false).Send()
+			assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+		})
+	}
+}
+
+func TestBatchDelete(t *testing.T) {
+
+	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
+
+	batch := "[{\"correlation_id\":\"8279bc80-2714-4767-8292-3e8328303e3f112\",\"original_url\":\"http://mail1.ru\"}, {\"correlation_id\":\"8d3f2ee8-af40-4c00-956b-da7415ba7e6e112\",\"original_url\":\"http://ya1.ru\"}]"
+
+	resultBatch := "[{\"correlation_id\": \"8279bc80-2714-4767-8292-3e8328303e3f112\",\"short_url\": \"http://localhost:9999/8279bc80-2714-4767-8292-3e8328303e3f112\"},{\"correlation_id\": \"8d3f2ee8-af40-4c00-956b-da7415ba7e6e112\",\"short_url\": \"http://localhost:9999/8d3f2ee8-af40-4c00-956b-da7415ba7e6e112\"}]"
+
+	testCases := []struct {
+		method       string
+		path         string
+		body         string
+		contentType  string
+		expectedCode int
+		expectedBody string
+		compress     bool
+	}{
+		{method: http.MethodPost, path: "/api/shorten/batch", body: batch, contentType: "application/json", compress: false, expectedCode: http.StatusCreated, expectedBody: resultBatch},
+	}
+
+	inputCh := make(chan []string, 10000)
+
+	routes := chi.NewRouter()
+	routes.Post("/api/shorten/batch", handlers.ObjectsShorterURL(inMemoryStorage, testBaseURL))
+	routes.Delete("/api/user/urls", handlers.Auth(handlers.DeleteURLs(mainStorage, inputCh)))
+	srv := httptest.NewServer(routes)
+	defer srv.Close()
+
+	for _, tc := range testCases {
+
+		t.Run(tc.method, func(t *testing.T) {
+			req := resty.New().R()
+			req.Method = tc.method
+			req.URL = srv.URL + tc.path
+
+			if len(tc.body) > 0 {
+				req.SetHeader("Content-Type", tc.contentType)
+				req.SetBody(tc.body)
+			}
+
+			_, err := req.Send()
+			assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+
+		})
+	}
+
+	// Удаление ссылок
+	req := resty.New().R()
+	req.Method = http.MethodDelete
+	req.URL = srv.URL + "/api/user/urls"
+	req.SetHeader("Content-Type", "application/json")
+	req.SetBody("[\"8d3f2ee8-af40-4c00-956b-da7415ba7e6e112\", \"8279bc80-2714-4767-8292-3e8328303e3f112\"]")
+	_, err := req.Send()
+	assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+	close(inputCh)
 }

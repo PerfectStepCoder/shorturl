@@ -43,14 +43,46 @@ git fetch template && git checkout template/main .github
 > go test -v cmd/shortener/main_test.go
 
 ### Запуск с флагами
-> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://0.0.0.0:9999
+> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://localhost:9999
 
-> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://0.0.0.0:9999 -d postgres://admin:password@localhost:6434/urlservice
+> go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://localhost:9999 -d postgres://admin:password@localhost:6434/urlservice
 
 ### Форматирование кода
 > gofmt -s -w .
 -s simplifies the code
 -w writes results directly
 
+> /Users/dmitrii/go/bin/goimports -local "github.com/PerfectStepCoder/shorturl/cmd/shortener" -w main.go
+> find . -name '*.go' | xargs /Users/dmitrii/go/bin/goimports -w -local 
+
+> gofmt -l -s .
+> goimports -l .
+
+/Users/dmitrii/go/bin/goimports
 ### Проверка стуктурных тегов
 > go vet -structtag
+
+## Тесты производительности
+### Бенчмарки
+> cd ./internal/tests/
+> go test --bench .
+> go test -bench . -benchmem
+> go test -bench=. -cpuprofile=./base.pprof запись профиля
+> go tool pprof bench.test base.pprof  анализ в консоле
+
+### Профилирование
+> go run ./cmd/shortener/main.go
+> http://localhost:8080/debug/pprof/
+Сравнение профилей:
+> go tool pprof -top -diff_base=./base.pprof ./result.pprof
+
+## Документация
+> cd корень проекта
+> /Users/dmitrii/go/bin/godoc -http=:8088 
+-goroot=.
+
+go vet ./...      # проверка всех файлов в текущей директории и поддиректориях
+
+Ищет все файлы с тестами и выполняет их
+> go test ./... 
+> go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
