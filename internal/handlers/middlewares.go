@@ -12,6 +12,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	// TODO вынести данные переменные в переменные окружения
+	hashKey  = []byte("very-secret-key")  // Симметричный ключ для подписи
+	blockKey = []byte("a-lot-secret-key") // Симметричный ключ для шифрования
+	sCookie  = securecookie.New(hashKey, blockKey)
+)
+
+type contextKey string
+
+// UserKeyUID - идентификатор пользователя который передается в контексте.
+const UserKeyUID contextKey = "userUID"
+
 // WithLogging - декоратор логирование пользователя.
 func WithLogging(h http.HandlerFunc, logger *logrus.Logger) http.HandlerFunc {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
@@ -81,13 +93,6 @@ func GzipCompress(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-var (
-	// TODO вынести данные переменные в переменные окружения
-	hashKey  = []byte("very-secret-key")  // Симметричный ключ для подписи
-	blockKey = []byte("a-lot-secret-key") // Симметричный ключ для шифрования
-	sCookie  = securecookie.New(hashKey, blockKey)
-)
-
 // ValidateUserUID - декоратор валидации JWT токена.
 func ValidateUserUID(cookieValue string) (string, bool) {
 	var userUID string
@@ -153,11 +158,6 @@ func SetNewCookie(w http.ResponseWriter) (string, error) {
 	return userUID, nil
 }
 
-type contextKey string
-
-// UserKeyUID - идентификатор пользователя который передается в контексте.
-const UserKeyUID contextKey = "userUID"
-
 // Auth для подписанной куки с идентификатором пользователя.
 func Auth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -180,10 +180,9 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 				}
 			} else { // Создаем пользователю uid (методы POST DELETE PUT)
 				userUID, err := SetNewCookie(w)
-				if err == nil {
-					ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
-					h.ServeHTTP(w, r.WithContext(ctx))
-				}
+				if err != nil { return }
+				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
+				h.ServeHTTP(w, r.WithContext(ctx))
 			}
 		} else {
 			// Проверка и декодирование куки

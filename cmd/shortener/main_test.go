@@ -228,16 +228,6 @@ func TestGzipCompression(t *testing.T) {
 	}
 }
 
-func findInCookie(resp *resty.Response) (string, bool) { // userUUID, bool
-	for _, cookie := range resp.Cookies() {
-		fmt.Print(cookie.Name)
-		if cookie.Name == "userUID" { // замените "userUID" на имя искомой cookie
-			return cookie.Value, true
-		}
-	}
-	return "", false
-}
-
 func TestAuthApiShorten(t *testing.T) {
 
 	inMemoryStorage, _ := storage.NewStorageInMemory(testLengthShortURL)
@@ -366,4 +356,14 @@ func TestPingDataBase(t *testing.T) {
 
 	_, err := req.Send()
 	assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
+}
+
+func findInCookie(resp *resty.Response) (string, bool) { // userUUID, bool
+	for _, cookie := range resp.Cookies() {
+		fmt.Print(cookie.Name)
+		if cookie.Name == "userUID" { // замените "userUID" на имя искомой cookie
+			return cookie.Value, true
+		}
+	}
+	return "", false
 }

@@ -226,13 +226,15 @@ func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string)
 	defer batchResults.Close() // Закрываем BatchResults после использования
 
 	// Обработка каждой команды в батче
-	for {
+	for i := 0; i < len(shortsHashURL); i++ {
 		_, err := batchResults.Exec()
 		if err != nil {
 			log.Printf("Error executing batch command: %v", err)
 			return err
 		}
 	}
+	
+	return nil
 }
 
 // LoadData загрузка данных из файла

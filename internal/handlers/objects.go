@@ -19,11 +19,19 @@ func ObjectShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerF
 
 		// Аутентификация
 		var userUID string
-		cookies, err := req.Cookie("userUID")
+		cookies, err := req.Cookie("userUID")		
 		if err != nil {
-			log.Print("No cookies")
-			userUID, _ = SetNewCookie(res)
+			if errors.Is(err, http.ErrNoCookie) {
+				log.Print("Cookie 'userUID' отсутствует, создается новый.")
+				userUID, _ = SetNewCookie(res)
+			} else {
+				// Обработка других возможных ошибок
+				log.Printf("Ошибка при получении cookie: %v", err)
+				http.Error(res, "Ошибка сервера", http.StatusInternalServerError)
+				return
+			}
 		} else {
+			// Если cookie существует, выполняем валидацию
 			userUID, _ = ValidateUserUID(cookies.Value) // обработка исключения не требуется
 		}
 
