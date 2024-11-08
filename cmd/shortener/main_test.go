@@ -358,6 +358,22 @@ func TestPingDataBase(t *testing.T) {
 	assert.NoError(t, err, "ошибка при отправке HTTP-запроса")
 }
 
+func TestInitRoutes(t *testing.T) {
+
+	var logger, logFile = config.GetLogger()
+	defer logFile.Close()
+
+	appSettings := config.ParseFlags()
+	lengthInputCh := 1000
+	inputCh := make(chan []string, lengthInputCh)
+	mainStorage, _ = storage.NewStorageInMemory(lengthShortURL)
+	routes := chi.NewRouter()
+
+	err := initRoutes(routes, appSettings, logger, inputCh, mainStorage)
+	assert.NoError(t, err)
+
+}
+
 func findInCookie(resp *resty.Response) (string, bool) { // userUUID, bool
 	for _, cookie := range resp.Cookies() {
 		fmt.Print(cookie.Name)

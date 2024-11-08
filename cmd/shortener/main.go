@@ -36,7 +36,7 @@ const (
 	lengthInputCh = 10000
 )
 
-func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Logger, inputCh chan []string) {
+func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Logger, inputCh chan []string, someStorage storage.PersistanceStorage) error {
 	// Middlewares
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.WithLogging(next.ServeHTTP, logger)
@@ -53,13 +53,15 @@ func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Log
 		routes.Mount("/debug/pprof/", http.DefaultServeMux)
 	}
 
-	routes.Post("/", hdl.Auth(hdl.ShorterURL(mainStorage, appSettings.BaseURL)))
-	routes.Get("/{id}", hdl.Auth(hdl.GetURL(mainStorage)))
-	routes.Get("/api/user/urls", hdl.Auth(hdl.GetURLs(mainStorage, appSettings.BaseURL)))
-	routes.Delete("/api/user/urls", hdl.Auth(hdl.DeleteURLs(mainStorage, inputCh)))
-	routes.Post("/api/shorten", hdl.ObjectShorterURL(mainStorage, appSettings.BaseURL))
-	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(mainStorage, appSettings.BaseURL))
+	routes.Post("/", hdl.Auth(hdl.ShorterURL(someStorage, appSettings.BaseURL)))
+	routes.Get("/{id}", hdl.Auth(hdl.GetURL(someStorage)))
+	routes.Get("/api/user/urls", hdl.Auth(hdl.GetURLs(someStorage, appSettings.BaseURL)))
+	routes.Delete("/api/user/urls", hdl.Auth(hdl.DeleteURLs(someStorage, inputCh)))
+	routes.Post("/api/shorten", hdl.ObjectShorterURL(someStorage, appSettings.BaseURL))
+	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(someStorage, appSettings.BaseURL))
 	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
+
+	return nil
 }
 
 func printBuildFlags() {
@@ -120,7 +122,7 @@ func main() {
 	defer mainStorage.Close()
 
 	routes := chi.NewRouter()
-	initRoutes(routes, appSettings, logger, inputCh) // инициализация маршрутов
+	initRoutes(routes, appSettings, logger, inputCh, mainStorage) // инициализация маршрутов
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
 		appSettings.ServiceNetAddress.Port)

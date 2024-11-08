@@ -62,12 +62,12 @@ func main() {
 	// Включаем все анализаторы класса SA из staticcheck
 	for _, v := range staticcheck.Analyzers {
 		switch v.Analyzer.Name[:2] {
-			case "SA": // анализаторы класса SA
-				mychecks = append(mychecks, v.Analyzer)
-			case "S": // добавляем по крайней мере один анализатор из класса S
-				mychecks = append(mychecks, v.Analyzer)
-			case "QF": // добавляем по крайней мере один анализатор из класса QF
-				mychecks = append(mychecks, v.Analyzer)
+		case "SA": // анализаторы класса SA
+			mychecks = append(mychecks, v.Analyzer)
+		case "S": // добавляем по крайней мере один анализатор из класса S
+			mychecks = append(mychecks, v.Analyzer)
+		case "QF": // добавляем по крайней мере один анализатор из класса QF
+			mychecks = append(mychecks, v.Analyzer)
 		}
 	}
 
