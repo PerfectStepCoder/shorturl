@@ -33,7 +33,9 @@ jobs:
           go vet -vettool=$(which statictest) ./...
 
       - name: Run tests with coverage
-        run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=$(go list ./... | grep -v "/cmd/client" | grep -v "/cmd/staticlint" | grep -v "/internal/tests")
+        run: |
+          pkgs=$(go list ./... | grep -v "/internal/handlers" | grep -v "/cmd/staticlint")
+          go test $pkgs -coverprofile=./cover.out -covermode=atomic -coverpkg=$(echo $pkgs | tr ' ' ',')
       
       - name: Display total coverage
         run: |
