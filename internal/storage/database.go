@@ -233,7 +233,7 @@ func (s *StorageInPostgres) DeleteByUser(shortsHashURL []string, userUID string)
 			return err
 		}
 	}
-	
+
 	return nil
 }
 

@@ -180,7 +180,9 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 				}
 			} else { // Создаем пользователю uid (методы POST DELETE PUT)
 				userUID, err := SetNewCookie(w)
-				if err != nil { return }
+				if err != nil {
+					return
+				}
 				ctx := context.WithValue(r.Context(), UserKeyUID, userUID)
 				h.ServeHTTP(w, r.WithContext(ctx))
 			}
