@@ -15,26 +15,67 @@ import (
 	hdl "github.com/PerfectStepCoder/shorturl/internal/handlers"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"github.com/go-chi/chi/v5"
+	"github.com/sirupsen/logrus"
 
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
 )
 
 // Глобальные переменные сборки
-var buildVersion = "N/A" // версия продукта
-var buildDate = "N/A"    // дата сборки
-var buildCommit = "N/A"  // коммит сборки
+var (
+	buildVersion = "N/A" // версия продукта
+	buildDate    = "N/A" // дата сборки
+	buildCommit  = "N/A" // коммит сборки
+)
 
 // mainStorage - хранилище для записи и чтения обработанных ссылок.
 var mainStorage storage.PersistanceStorage
 
-// lengthShortURL — константа длина генерируемых коротких ссылок.
-const lengthShortURL = 10
+const (
+	// lengthShortURL — константа длина генерируемых коротких ссылок.
+	lengthShortURL = 10
+	// lengthInputCh - размер буфера для канала обработки ссылок
+	lengthInputCh = 10000
+)
 
-func main() {
+func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Logger, inputCh chan []string, someStorage storage.PersistanceStorage) error {
+	// Middlewares
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.WithLogging(next.ServeHTTP, logger)
+	})
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.GzipCompress(next.ServeHTTP)
+	})
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.CheckSignedCookie(next.ServeHTTP)
+	})
+
+	if appSettings.AddProfileRoute {
+		// Регистрируем pprof маршрут
+		routes.Mount("/debug/pprof/", http.DefaultServeMux)
+	}
+
+	routes.Post("/", hdl.Auth(hdl.ShorterURL(someStorage, appSettings.BaseURL)))
+	routes.Get("/{id}", hdl.Auth(hdl.GetURL(someStorage)))
+	routes.Get("/api/user/urls", hdl.Auth(hdl.GetURLs(someStorage, appSettings.BaseURL)))
+	routes.Delete("/api/user/urls", hdl.Auth(hdl.DeleteURLs(someStorage, inputCh)))
+	routes.Post("/api/shorten", hdl.ObjectShorterURL(someStorage, appSettings.BaseURL))
+	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(someStorage, appSettings.BaseURL))
+	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
+
+	return nil
+}
+
+func printBuildFlags() {
 
 	fmt.Printf("Build version: %s\n", buildVersion)
 	fmt.Printf("Build date: %s\n", buildDate)
 	fmt.Printf("Build commit: %s\n", buildCommit)
+
+}
+
+func main() {
+
+	printBuildFlags()
 
 	// Канал для получения сигналов
 	sigs := make(chan os.Signal, 1)
@@ -44,7 +85,7 @@ func main() {
 	done := make(chan bool, 1)
 
 	// Для обработки удаления urls
-	inputCh := make(chan []string, 10000) // TODO вынести 10000 в переменные окружения
+	inputCh := make(chan []string, lengthInputCh) // TODO вынести 10000 в переменные окружения
 
 	numWorkers := runtime.NumCPU() // количичество воркеров для обработки массового удаления ссылок
 
@@ -82,30 +123,7 @@ func main() {
 	defer mainStorage.Close()
 
 	routes := chi.NewRouter()
-
-	// Middlewares
-	routes.Use(func(next http.Handler) http.Handler {
-		return hdl.WithLogging(next.ServeHTTP, logger)
-	})
-	routes.Use(func(next http.Handler) http.Handler {
-		return hdl.GzipCompress(next.ServeHTTP)
-	})
-	routes.Use(func(next http.Handler) http.Handler {
-		return hdl.CheckSignedCookie(next.ServeHTTP)
-	})
-
-	if appSettings.AddProfileRoute {
-		// Регистрируем pprof маршрут
-		routes.Mount("/debug/pprof/", http.DefaultServeMux)
-	}
-
-	routes.Post("/", hdl.Auth(hdl.ShorterURL(mainStorage, appSettings.BaseURL)))
-	routes.Get("/{id}", hdl.Auth(hdl.GetURL(mainStorage)))
-	routes.Get("/api/user/urls", hdl.Auth(hdl.GetURLs(mainStorage, appSettings.BaseURL)))
-	routes.Delete("/api/user/urls", hdl.Auth(hdl.DeleteURLs(mainStorage, inputCh)))
-	routes.Post("/api/shorten", hdl.ObjectShorterURL(mainStorage, appSettings.BaseURL))
-	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(mainStorage, appSettings.BaseURL))
-	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
+	initRoutes(routes, appSettings, logger, inputCh, mainStorage) // инициализация маршрутов
 
 	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
 		appSettings.ServiceNetAddress.Port)
