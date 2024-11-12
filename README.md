@@ -86,3 +86,16 @@ go vet ./...      # проверка всех файлов в текущей д�
 Ищет все файлы с тестами и выполняет их
 > go test ./... 
 > go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+> go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=$(go list ./... | grep -v "/cmd/client" | grep -v "/cmd/staticlint")
+Посмотреть какой функционал не покрыт тестами:
+> go tool cover -html=profile.cov
+
+## Пользовательский статический анализатор (запуск)
+> go run ./cmd/staticlint/main.go ./cmd/shortener
+
+### Выводим отчет о покрытие тестами кода
+> go test ./... -coverprofile=coverage.out
+> go tool cover -html=coverage.out -o coverage.html
+
+### Запуск сборки в флагами
+> go build -ldflags="-X 'main.buildVersion=1.0.0'"

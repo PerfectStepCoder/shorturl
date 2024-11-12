@@ -15,6 +15,9 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// batchSize - размер батча для массового удаления ссылок.
+const batchSize = 15
+
 // ShorterURL - обработчик ссылок.
 func ShorterURL(mainStorage storage.Storage, baseURL string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -106,6 +109,36 @@ func GetURLs(storage storage.Storage, baseURL string) http.HandlerFunc {
 	}
 }
 
+// DeleteURLs - обработчик удаления ссылок.
+func DeleteURLs(mainStorage storage.Storage, inputCh chan []string) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+
+		// Аутентификация
+		userUID := fmt.Sprintf("%s", req.Context().Value(UserKeyUID))
+
+		shortHashs, _ := io.ReadAll(req.Body)
+
+		var shortsHashURL []string
+
+		err := json.Unmarshal(shortHashs, &shortsHashURL)
+		if err != nil {
+			log.Printf("Error parsing JSON: %s", err)
+			http.Error(res, "Bad JSON data", http.StatusBadRequest)
+			return
+		}
+
+		// Удаление
+		batches := chunkStrings(shortsHashURL, batchSize, userUID) // разбиваем на батчи массив коротких ссылок shortsHashURL - []string
+
+		for _, batch := range batches {
+			// Каждый батч удаляю в горутине
+			inputCh <- batch
+		}
+
+		res.WriteHeader(http.StatusAccepted)
+	}
+}
+
 func chunkStrings(arr []string, batchSize int, userUID string) [][]string {
 	var batches [][]string
 
@@ -126,34 +159,4 @@ func chunkStrings(arr []string, batchSize int, userUID string) [][]string {
 	}
 
 	return batches
-}
-
-// DeleteURLs - обработчик удаления ссылок.
-func DeleteURLs(mainStorage storage.Storage, inputCh chan []string) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-
-		// Аутентификация
-		userUID := fmt.Sprintf("%s", req.Context().Value(UserKeyUID))
-
-		shortHashs, _ := io.ReadAll(req.Body)
-
-		var shortsHashURL []string
-
-		err := json.Unmarshal(shortHashs, &shortsHashURL)
-		if err != nil {
-			log.Printf("Error parsing JSON: %s", err)
-			http.Error(res, "Bad JSON data", http.StatusBadRequest)
-		}
-
-		// Удаление
-		batchSize := 15                                            // указываем размер батча TOTO перенести в переменные окружения
-		batches := chunkStrings(shortsHashURL, batchSize, userUID) // разбиваем на батчи массив коротких ссылок shortsHashURL - []string
-
-		for _, batch := range batches {
-			// Каждый батч удаляю в горутине
-			inputCh <- batch
-		}
-
-		res.WriteHeader(http.StatusAccepted)
-	}
 }

@@ -85,3 +85,14 @@ func DtestStorageInPostgresFindByUserUID(t *testing.T) {
 	assert.Equal(t, "hash1", result[0].ShortHash)
 	assert.NoError(t, mockDB.ExpectationsWereMet())
 }
+
+// Пример теста для метода Get
+func TestStorageInPostgresInit(t *testing.T) {
+
+	conectionStringDNS := "http://localhost:5435/DB"
+	lengthShortURL := 10
+
+	_, err := NewStorageInPostgres(conectionStringDNS, lengthShortURL)
+
+	assert.Error(t, err)
+}

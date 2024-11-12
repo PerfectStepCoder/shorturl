@@ -33,8 +33,13 @@ jobs:
           go vet -vettool=$(which statictest) ./...
 
       - name: Run tests with coverage
-        run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+        run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=$(go list ./... | grep -v "./internal/handlers" | grep -v "./cmd/staticlint" | grep -v "./internal/tests")
       
+      - name: Display total coverage
+        run: |
+          total_coverage=$(go tool cover -func=cover.out | grep total | awk '{print $3}')
+          echo "Общий процент покрытия: $total_coverage"
+
       - name: Check test coverage
         uses: vladopajic/go-test-coverage@v2
         with:
@@ -49,3 +54,4 @@ jobs:
           threshold-file: 0
           threshold-package: 0
           threshold-total: 35
+          

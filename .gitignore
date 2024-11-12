@@ -27,3 +27,9 @@ vendor/
 *.log
 
 *.data
+
+profile.cov
+
+coverage.html
+
+*.db
