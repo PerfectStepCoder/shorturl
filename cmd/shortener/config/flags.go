@@ -32,7 +32,7 @@ func splitHostPort(addr string) (string, int, error) {
 // initConfig - инициализация из файла конфигурации.
 func initConfig(settings *Settings) {
 
-	config, err := ParseJsonConfig(settings.ConfigNameFile)
+	config, err := ParseJSONConfig(settings.ConfigNameFile)
 	if err != nil {
 		return
 	}

@@ -97,7 +97,7 @@ go vet ./...      # проверка всех файлов в текущей д�
 
 ### Выводим отчет о покрытие тестами кода
 > go test ./... -coverprofile=coverage.out
-> go tool cover -html=coverage.out -o coverage.html
+> go tool cover -html=cover.out -o coverage.html
 
 ### Запуск сборки в флагами
 > go build -ldflags="-X 'main.buildVersion=1.0.0'"

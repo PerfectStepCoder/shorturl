@@ -60,7 +60,7 @@ func (s Settings) String() string {
 }
 
 // Config - структура для хранения данных из JSON
-type ConfigJson struct {
+type ConfigJSON struct {
 	ServerAddress   string `json:"server_address"`
 	BaseURL         string `json:"base_url"`
 	FileStoragePath string `json:"file_storage_path"`
@@ -69,7 +69,7 @@ type ConfigJson struct {
 }
 
 // ParseConfig - функция для парсинга JSON-файла
-func ParseJsonConfig(filename string) (*ConfigJson, error) {
+func ParseJSONConfig(filename string) (*ConfigJSON, error) {
 	// Открываем JSON-файл
 	file, err := os.Open(filename)
 	if err != nil {
@@ -84,7 +84,7 @@ func ParseJsonConfig(filename string) (*ConfigJson, error) {
 	}
 
 	// Парсим JSON в структуру Config
-	var config ConfigJson
+	var config ConfigJSON
 	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("ошибка при парсинге JSON: %w", err)
 	}
