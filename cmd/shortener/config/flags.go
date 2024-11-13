@@ -29,7 +29,7 @@ func splitHostPort(addr string) (string, int, error) {
 	return parts[0], num, nil
 }
 
-// initConfig - инициализация из файла конфигурации. 
+// initConfig - инициализация из файла конфигурации.
 func initConfig(settings *Settings) {
 
 	config, err := ParseJsonConfig(settings.ConfigNameFile)
@@ -37,11 +37,21 @@ func initConfig(settings *Settings) {
 		return
 	}
 
-	if settings.BaseURL == "" { settings.BaseURL = config.BaseURL }
-	if settings.DatabaseDSN == "" { settings.DatabaseDSN = config.DatabaseDSN }
-	if settings.FileStoragePath == "" { settings.FileStoragePath = config.FileStoragePath }
-	if settings.ServiceNetAddress.Host == "" || settings.ServiceNetAddress.Port == 0 { settings.ServiceNetAddress.Set(config.ServerAddress) }
-	if !settings.EnableTSL { settings.EnableTSL = config.EnableHTTPS }
+	if settings.BaseURL == "" {
+		settings.BaseURL = config.BaseURL
+	}
+	if settings.DatabaseDSN == "" {
+		settings.DatabaseDSN = config.DatabaseDSN
+	}
+	if settings.FileStoragePath == "" {
+		settings.FileStoragePath = config.FileStoragePath
+	}
+	if settings.ServiceNetAddress.Host == "" || settings.ServiceNetAddress.Port == 0 {
+		settings.ServiceNetAddress.Set(config.ServerAddress)
+	}
+	if !settings.EnableTSL {
+		settings.EnableTSL = config.EnableHTTPS
+	}
 
 }
 
@@ -63,7 +73,7 @@ func ParseFlags() Settings {
 	flag.BoolVar(&appSettings.AddProfileRoute, "p", false, "Add profiling route")
 	flag.Parse()
 
-	if appSettings.ConfigNameFile != "" {  
+	if appSettings.ConfigNameFile != "" {
 		initConfig(appSettings)
 	}
 	if os.Getenv("CONFIG") != "" {
@@ -76,7 +86,7 @@ func ParseFlags() Settings {
 		boolValue, err := strconv.ParseBool(envEnableTSL)
 		if err != nil {
 			appSettings.EnableTSL = false
-		} else { 
+		} else {
 			appSettings.EnableTSL = boolValue
 		}
 	}

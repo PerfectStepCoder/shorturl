@@ -81,7 +81,7 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	// Уведомлять о сигнале interrupt (Ctrl+C) и сигнале завершения
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	
+
 	// Создаем канал для уведомления о завершении работы
 	done := make(chan bool, 1)
 
@@ -146,7 +146,7 @@ func main() {
 			err = http.ListenAndServeTLS(fmt.Sprintf(`%s:443`, appSettings.ServiceNetAddress.Host), certFile, keyFile, routes)
 		} else {
 			err = http.ListenAndServe(fmt.Sprintf(`%s:%d`, appSettings.ServiceNetAddress.Host,
-			appSettings.ServiceNetAddress.Port), routes)
+				appSettings.ServiceNetAddress.Port), routes)
 		}
 		if err != nil {
 			log.Printf("error: %s", err)

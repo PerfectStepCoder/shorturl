@@ -10,20 +10,19 @@ import (
 	"golang.org/x/tools/go/analysis/passes/structtag"
 )
 
-
 func TestStaticLint(t *testing.T) {
-		// Включаем стандартные анализаторы
-		mychecks := []*analysis.Analyzer{
-			printf.Analyzer,
-			shadow.Analyzer,
-			structtag.Analyzer,
-		}
-	
-		addNewAnalizers(mychecks)
-	
-		// Добавляем кастомный анализатор
-		mychecks = append(mychecks, CustomAnalyzer)
+	// Включаем стандартные анализаторы
+	mychecks := []*analysis.Analyzer{
+		printf.Analyzer,
+		shadow.Analyzer,
+		structtag.Analyzer,
+	}
 
-		assert.Equal(t, len(mychecks), 4)
-		
+	addNewAnalizers(mychecks)
+
+	// Добавляем кастомный анализатор
+	mychecks = append(mychecks, CustomAnalyzer)
+
+	assert.Equal(t, len(mychecks), 4)
+
 }
