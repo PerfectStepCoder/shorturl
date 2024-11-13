@@ -47,6 +47,8 @@ git fetch template && git checkout template/main .github
 
 > go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://localhost:9999 -d postgres://admin:password@localhost:6434/urlservice
 
+> go run ./cmd/shortener/main.go -c config.json
+
 ### Форматирование кода
 > gofmt -s -w .
 -s simplifies the code

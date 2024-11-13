@@ -2,7 +2,11 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -41,7 +45,49 @@ type Settings struct {
 	BaseURL           string
 	FileStoragePath   string
 	DatabaseDSN       string
+	ConfigNameFile	  string
 	SaveDBtoFile      bool
 	AddProfileRoute   bool
 	EnableTSL         bool
+}
+
+// Метод String для структуры Settings
+func (s Settings) String() string {
+    return fmt.Sprintf(
+        "Settings:\n\tServiceNetAddress: %s\n\tBaseURL: %s\n\tFileStoragePath: %s\n\tDatabaseDSN: %s\n\tConfigNameFile: %s\n\tSaveDBtoFile: %v\n\tAddProfileRoute: %v\n\tEnableTSL: %v",
+        s.ServiceNetAddress, s.BaseURL, s.FileStoragePath, s.DatabaseDSN, s.ConfigNameFile, s.SaveDBtoFile, s.AddProfileRoute, s.EnableTSL,
+    )
+}
+
+// Config - структура для хранения данных из JSON
+type ConfigJson struct {
+    ServerAddress    string `json:"server_address"`
+    BaseURL          string `json:"base_url"`
+    FileStoragePath  string `json:"file_storage_path"`
+    DatabaseDSN      string `json:"database_dsn"`
+    EnableHTTPS      bool   `json:"enable_https"`
+}
+
+// ParseConfig - функция для парсинга JSON-файла
+func ParseJsonConfig(filename string) (*ConfigJson, error) {
+    // Открываем JSON-файл
+    file, err := os.Open(filename)
+    if err != nil {
+        return nil, fmt.Errorf("не удалось открыть файл: %w", err)
+    }
+    defer file.Close()
+
+    // Читаем содержимое файла
+    data, err := io.ReadAll(file)
+    if err != nil {
+        return nil, fmt.Errorf("не удалось прочитать файл: %w", err)
+    }
+
+    // Парсим JSON в структуру Config
+    var config ConfigJson
+    if err := json.Unmarshal(data, &config); err != nil {
+        return nil, fmt.Errorf("ошибка при парсинге JSON: %w", err)
+    }
+
+    return &config, nil
 }

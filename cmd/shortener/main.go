@@ -105,7 +105,7 @@ func main() {
 	defer logFile.Close()
 
 	appSettings := config.ParseFlags()
-	log.Print("Settings:\n", appSettings, "\n")
+	log.Print("\n", appSettings, "\n")
 	log.Printf("Count core: %d\n", runtime.NumCPU())
 	if appSettings.DatabaseDSN != "" {
 		var err error

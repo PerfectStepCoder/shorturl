@@ -1,0 +1,7 @@
+{
+    "server_address": "localhost1:8080",
+    "base_url": "http://localhost1",
+    "file_storage_path": "shorturls.data",
+    "database_dsn": "hiHi", 
+    "enable_https": true
+}
