@@ -8,6 +8,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"syscall"
 
@@ -79,7 +80,8 @@ func main() {
 	// Канал для получения сигналов
 	sigs := make(chan os.Signal, 1)
 	// Уведомлять о сигнале interrupt (Ctrl+C) и сигнале завершения
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
 	// Создаем канал для уведомления о завершении работы
 	done := make(chan bool, 1)
 
@@ -104,7 +106,7 @@ func main() {
 	defer logFile.Close()
 
 	appSettings := config.ParseFlags()
-	log.Print("Settings:\n", appSettings, "\n")
+	log.Print("\n", appSettings, "\n")
 	log.Printf("Count core: %d\n", runtime.NumCPU())
 	if appSettings.DatabaseDSN != "" {
 		var err error
@@ -128,9 +130,24 @@ func main() {
 		appSettings.ServiceNetAddress.Port)
 
 	go func() {
-		err := http.ListenAndServe(fmt.Sprintf(`%s:%d`, appSettings.ServiceNetAddress.Host,
-			appSettings.ServiceNetAddress.Port), routes)
-
+		var err error
+		if appSettings.EnableTSL {
+			// Путь к сертификату и ключу
+			keyFile, errServerKey := filepath.Abs("./tls_keys/server.key")
+			if errServerKey != nil {
+				fmt.Println("Ошибка получения абсолютного пути к ключу:", errServerKey)
+				return
+			}
+			certFile, errServerCrt := filepath.Abs("./tls_keys/server.crt")
+			if errServerCrt != nil {
+				fmt.Println("Ошибка получения абсолютного пути к сертификату:", errServerCrt)
+				return
+			}
+			err = http.ListenAndServeTLS(fmt.Sprintf(`%s:443`, appSettings.ServiceNetAddress.Host), certFile, keyFile, routes)
+		} else {
+			err = http.ListenAndServe(fmt.Sprintf(`%s:%d`, appSettings.ServiceNetAddress.Host,
+				appSettings.ServiceNetAddress.Port), routes)
+		}
 		if err != nil {
 			log.Printf("error: %s", err)
 		}

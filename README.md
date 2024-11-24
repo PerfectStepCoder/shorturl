@@ -47,6 +47,8 @@ git fetch template && git checkout template/main .github
 
 > go run ./cmd/shortener/main.go -a 0.0.0.0:9999 -b http://localhost:9999 -d postgres://admin:password@localhost:6434/urlservice
 
+> go run ./cmd/shortener/main.go -c config.json
+
 ### Форматирование кода
 > gofmt -s -w .
 -s simplifies the code
@@ -95,7 +97,7 @@ go vet ./...      # проверка всех файлов в текущей д�
 
 ### Выводим отчет о покрытие тестами кода
 > go test ./... -coverprofile=coverage.out
-> go tool cover -html=coverage.out -o coverage.html
+> go tool cover -html=cover.out -o coverage.html
 
 ### Запуск сборки в флагами
 > go build -ldflags="-X 'main.buildVersion=1.0.0'"

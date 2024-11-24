@@ -15,6 +15,7 @@ const (
 	fileStoragePath = "shorturls.data"        // путь к файлу хранилища ссылок
 )
 
+// splitHostPort - парсинг строки хоста и порта.
 func splitHostPort(addr string) (string, int, error) {
 	parts := strings.Split(addr, ":")
 	if len(parts) != 2 {
@@ -28,6 +29,32 @@ func splitHostPort(addr string) (string, int, error) {
 	return parts[0], num, nil
 }
 
+// initConfig - инициализация из файла конфигурации.
+func initConfig(settings *Settings) {
+
+	config, err := ParseJSONConfig(settings.ConfigNameFile)
+	if err != nil {
+		return
+	}
+
+	if settings.BaseURL == "" {
+		settings.BaseURL = config.BaseURL
+	}
+	if settings.DatabaseDSN == "" {
+		settings.DatabaseDSN = config.DatabaseDSN
+	}
+	if settings.FileStoragePath == "" {
+		settings.FileStoragePath = config.FileStoragePath
+	}
+	if settings.ServiceNetAddress.Host == "" || settings.ServiceNetAddress.Port == 0 {
+		settings.ServiceNetAddress.Set(config.ServerAddress)
+	}
+	if !settings.EnableTSL {
+		settings.EnableTSL = config.EnableHTTPS
+	}
+
+}
+
 // ParseFlags - функция для парсинга передаваемых флагов при старте сервиса.
 func ParseFlags() Settings {
 	appSettings := new(Settings)
@@ -38,13 +65,31 @@ func ParseFlags() Settings {
 
 	flag.Var(&appSettings.ServiceNetAddress, "a", "Net address host:port")
 	flag.StringVar(&appSettings.BaseURL, "b", baseURL, "Base url host:port")
+	flag.StringVar(&appSettings.ConfigNameFile, "c", "", "Config name file")
 	flag.StringVar(&appSettings.DatabaseDSN, "d", "", "DataBaseDSN connect to DB")
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
-	flag.BoolVar(&appSettings.SaveDBtoFile, "s", false, "Save db to file")
+	flag.BoolVar(&appSettings.SaveDBtoFile, "l", false, "Save db to file")
+	flag.BoolVar(&appSettings.EnableTSL, "s", false, "TSL enable")
 	flag.BoolVar(&appSettings.AddProfileRoute, "p", false, "Add profiling route")
 	flag.Parse()
 
+	if appSettings.ConfigNameFile != "" {
+		initConfig(appSettings)
+	}
+	if os.Getenv("CONFIG") != "" {
+		appSettings.ConfigNameFile = os.Getenv("CONFIG")
+		initConfig(appSettings)
+	}
+
 	// Если есть переменные окружния они переписывают настройки
+	if envEnableTSL := os.Getenv("ENABLE_HTTPS"); envEnableTSL != "" {
+		boolValue, err := strconv.ParseBool(envEnableTSL)
+		if err != nil {
+			appSettings.EnableTSL = false
+		} else {
+			appSettings.EnableTSL = boolValue
+		}
+	}
 	if envBaseURL := os.Getenv("SHORTURL_BASE_URL"); envBaseURL != "" {
 		appSettings.BaseURL = envBaseURL
 	}
@@ -65,6 +110,9 @@ func ParseFlags() Settings {
 	if appSettings.ServiceNetAddress.Host == "" && appSettings.ServiceNetAddress.Port == 0 {
 		appSettings.ServiceNetAddress.Host = "localhost"
 		appSettings.ServiceNetAddress.Port = 8080
+	}
+	if appSettings.EnableTSL {
+		appSettings.ServiceNetAddress.Port = 443
 	}
 	return *appSettings
 }

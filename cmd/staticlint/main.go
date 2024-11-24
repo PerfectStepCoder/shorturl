@@ -50,6 +50,21 @@ func runCustomAnalyzer(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
+// addNewAnalizers - добавляет стандартные анализаторы.
+func addNewAnalizers(analize []*analysis.Analyzer) {
+	// Включаем все анализаторы класса SA из staticcheck
+	for _, v := range staticcheck.Analyzers {
+		switch v.Analyzer.Name[:2] {
+		case "SA": // анализаторы класса SA
+			analize = append(analize, v.Analyzer)
+		case "S": // добавляем по крайней мере один анализатор из класса S
+			analize = append(analize, v.Analyzer)
+		case "QF": // добавляем по крайней мере один анализатор из класса QF
+			analize = append(analize, v.Analyzer)
+		}
+	}
+}
+
 func main() {
 
 	// Включаем стандартные анализаторы
@@ -59,17 +74,7 @@ func main() {
 		structtag.Analyzer,
 	}
 
-	// Включаем все анализаторы класса SA из staticcheck
-	for _, v := range staticcheck.Analyzers {
-		switch v.Analyzer.Name[:2] {
-		case "SA": // анализаторы класса SA
-			mychecks = append(mychecks, v.Analyzer)
-		case "S": // добавляем по крайней мере один анализатор из класса S
-			mychecks = append(mychecks, v.Analyzer)
-		case "QF": // добавляем по крайней мере один анализатор из класса QF
-			mychecks = append(mychecks, v.Analyzer)
-		}
-	}
+	addNewAnalizers(mychecks)
 
 	fmt.Print(mychecks)
 
