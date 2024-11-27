@@ -1,3 +1,4 @@
+// Модуль содержит декораторы для обработки запросов авторизованных пользователей.
 package handlers
 
 import (
@@ -10,7 +11,7 @@ import (
 	"net/http"
 )
 
-// handleStats обрабатывает запрос к /api/internal/stats
+// ShorterStats - обрабатывает запрос к /api/internal/stats
 func ShorterStats(mainStorage storage.Storage, trustedSubnet string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Проверка наличия trusted_subnet
