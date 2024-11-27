@@ -49,6 +49,7 @@ type Settings struct {
 	SaveDBtoFile      bool
 	AddProfileRoute   bool
 	EnableTSL         bool
+	TrustedSubnet     string
 }
 
 // Метод String для структуры Settings
@@ -66,6 +67,7 @@ type ConfigJSON struct {
 	FileStoragePath string `json:"file_storage_path"`
 	DatabaseDSN     string `json:"database_dsn"`
 	EnableHTTPS     bool   `json:"enable_https"`
+	TrustedSubnet   string `json:"trusted_subnet"`
 }
 
 // ParseConfig - функция для парсинга JSON-файла

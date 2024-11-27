@@ -61,6 +61,7 @@ func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Log
 	routes.Post("/api/shorten", hdl.ObjectShorterURL(someStorage, appSettings.BaseURL))
 	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(someStorage, appSettings.BaseURL))
 	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
+	routes.Get("/api/internal/stats", hdl.ShorterStats(someStorage, appSettings.TrustedSubnet))
 
 	return nil
 }
