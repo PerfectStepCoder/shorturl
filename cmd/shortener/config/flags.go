@@ -52,7 +52,9 @@ func initConfig(settings *Settings) {
 	if !settings.EnableTSL {
 		settings.EnableTSL = config.EnableHTTPS
 	}
-
+	if settings.TrustedSubnet == "" {
+		settings.TrustedSubnet = config.TrustedSubnet
+	}
 }
 
 // ParseFlags - функция для парсинга передаваемых флагов при старте сервиса.
@@ -70,6 +72,7 @@ func ParseFlags() Settings {
 	flag.StringVar(&appSettings.FileStoragePath, "f", fileStoragePath, "Path to file of storage")
 	flag.BoolVar(&appSettings.SaveDBtoFile, "l", false, "Save db to file")
 	flag.BoolVar(&appSettings.EnableTSL, "s", false, "TSL enable")
+	flag.StringVar(&appSettings.TrustedSubnet, "t", "", "Trusted Subnet mask")
 	flag.BoolVar(&appSettings.AddProfileRoute, "p", false, "Add profiling route")
 	flag.Parse()
 

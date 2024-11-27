@@ -155,3 +155,36 @@ func (s *StorageInMemory) DeleteByUser(shortHashURL []string, userUID string) er
 func (s *StorageInMemory) Close() {
 	s.data = nil
 }
+
+func (s *StorageInMemory) CountURLs() (int, error) {
+	output := 0
+	output = len(s.data)
+	return output, nil
+}
+
+func (s *StorageInMemory) CountUsers() (int, error) {
+
+	output := 0
+
+	set := make(map[string]struct{})
+
+	// Функция для добавления ключа в множество
+	add := func(key string) bool {
+		if _, exists := set[key]; exists {
+			// Ключ уже существует в множестве
+			return false
+		}
+		// Добавляем ключ в множество
+		set[key] = struct{}{}
+		return true
+	}
+
+	for _, originURLwithUserUID := range s.data {
+		parts := strings.Split(originURLwithUserUID, "|")
+		if len(parts) == 2 && add(parts[1]) {
+			output += 1
+		}
+	}
+
+	return output, nil
+}

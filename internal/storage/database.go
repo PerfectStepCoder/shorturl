@@ -332,3 +332,33 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL, u
 
 	return output, nil
 }
+
+func (s *StorageInPostgres) CountURLs() (int, error) {
+	var count int
+
+	query := `
+		SELECT COUNT(*) FROM urls
+	`
+	err := s.connectionToDB.QueryRow(context.Background(), query).Scan(&count)
+	if err != nil {
+		log.Printf("Failed to count URLs: %v\n", err)
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (s *StorageInPostgres) CountUsers() (int, error) {
+	output := 0
+
+	query := `
+		SELECT COUNT(user_uid) FROM urls GROUP BY user_uid
+	`
+	err := s.connectionToDB.QueryRow(context.Background(), query).Scan(&output)
+
+	if err != nil {
+		log.Printf("Failed to find any users: %v\n", err)
+	}
+
+	return output, nil
+}

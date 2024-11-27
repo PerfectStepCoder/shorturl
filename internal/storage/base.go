@@ -15,6 +15,8 @@ type Storage interface {
 	FindByUserUID(userUID string) ([]ShortHashURL, error)     // поиск сокращенных ссылок от пользователя
 	IsDeleted(hashKey string) (bool, error)                   // проверяет удалена ли ссылка по ее хешу
 	DeleteByUser(shortHashURL []string, userUID string) error // удаление всех ссылок конкретного пользователя
+	CountURLs() (int, error)                                  // количество ссылок в хранилище
+	CountUsers() (int, error)                                 // количество пользователей в хранилище
 }
 
 // CorrelationURL - оригинальная ссылка с идентификатором.
