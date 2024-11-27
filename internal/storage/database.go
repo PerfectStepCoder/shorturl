@@ -333,6 +333,7 @@ func (s *StorageInPostgres) CorrelationsSave(correlationURLs []CorrelationURL, u
 	return output, nil
 }
 
+// CountURLs - количество ссылок в системе
 func (s *StorageInPostgres) CountURLs() (int, error) {
 	var count int
 
@@ -348,6 +349,7 @@ func (s *StorageInPostgres) CountURLs() (int, error) {
 	return count, nil
 }
 
+// CountUsers - количество пользователей в системе
 func (s *StorageInPostgres) CountUsers() (int, error) {
 	output := 0
 

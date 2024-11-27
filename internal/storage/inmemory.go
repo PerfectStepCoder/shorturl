@@ -156,12 +156,14 @@ func (s *StorageInMemory) Close() {
 	s.data = nil
 }
 
+// CountURLs - количество ссылок в системе
 func (s *StorageInMemory) CountURLs() (int, error) {
 	output := 0
 	output = len(s.data)
 	return output, nil
 }
 
+// CountUsers - количество пользователей в системе
 func (s *StorageInMemory) CountUsers() (int, error) {
 
 	output := 0
