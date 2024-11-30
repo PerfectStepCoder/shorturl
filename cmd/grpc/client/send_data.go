@@ -64,8 +64,8 @@ func TestURLs(c pb.ShorterClient) {
 		log.Println(resp.Result)
     }
 
-    resultStats, err := c.Stats(ctx, &emptypb.Empty{})
+    resultStats, _ := c.Stats(ctx, &emptypb.Empty{})
 
-    log.Println(fmt.Sprintf("\nStats:\nCountURL: %d\nCountUsers: %d", resultStats.CountURL, resultStats.CountUsers))
+    log.Printf("\nStats:\nCountURL: %d\nCountUsers: %d", resultStats.CountURL, resultStats.CountUsers)
     
 }

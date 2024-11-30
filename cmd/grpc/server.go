@@ -38,7 +38,7 @@ func (s *ShorterServerGRPC) ShorterURL(ctx context.Context, in *pb.RequestFullUR
 
 	response.Result = shortURL
 
-    fmt.Print(fmt.Sprintf("Repit: %s, shortURL: %s", in.Url, shortURL))
+    fmt.Printf("Repite: %s, shortURL: %s\n", in.Url, shortURL)
 
 	return &response, nil
 }

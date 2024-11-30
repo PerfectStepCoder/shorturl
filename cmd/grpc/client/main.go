@@ -15,7 +15,7 @@ const serverPort = 8080
 func main() {
 
 	// Устанавливаем соединение с сервером
-	conn, err := grpc.Dial(fmt.Sprintf(":%d", serverPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(fmt.Sprintf(":%d", serverPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
