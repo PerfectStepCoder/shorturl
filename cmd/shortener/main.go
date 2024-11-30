@@ -20,15 +20,15 @@ import (
 	"github.com/PerfectStepCoder/shorturl/cmd/shortener/config"
 )
 
+// mainStorage - хранилище для записи и чтения обработанных ссылок.
+var mainStorage storage.PersistanceStorage
+
 // Глобальные переменные сборки
 var (
 	buildVersion = "N/A" // версия продукта
 	buildDate    = "N/A" // дата сборки
 	buildCommit  = "N/A" // коммит сборки
 )
-
-// mainStorage - хранилище для записи и чтения обработанных ссылок.
-var mainStorage storage.PersistanceStorage
 
 const (
 	// lengthShortURL — константа длина генерируемых коротких ссылок.
@@ -106,20 +106,10 @@ func main() {
 	var logger, logFile = config.GetLogger()
 	defer logFile.Close()
 
-	appSettings := config.ParseFlags()
-	log.Print("\n", appSettings, "\n")
-	log.Printf("Count core: %d\n", runtime.NumCPU())
-	if appSettings.DatabaseDSN != "" {
-		var err error
-		mainStorage, err = storage.NewStorageInPostgres(appSettings.DatabaseDSN, lengthShortURL)
-		if err != nil {
-			log.Fatalf("Problem with database")
-		}
-	} else {
-		mainStorage, _ = storage.NewStorageInMemory(lengthShortURL)
-		// Load
-		loaded := mainStorage.LoadData(appSettings.FileStoragePath)
-		log.Printf("Loaded: %d recordes from file: %s\n", loaded, appSettings.FileStoragePath)
+	appSettings, mainStorage, errConfig := config.SetupServerSettings(logger, lengthShortURL)
+	
+	if errConfig != nil {
+		panic("No work without correct config!")
 	}
 
 	defer mainStorage.Close()
