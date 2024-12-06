@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"testing"
+
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
+
 	//"google.golang.org/grpc/status"
 	pb "github.com/PerfectStepCoder/shorturl/internal/proto/gen"
 )
@@ -43,7 +45,7 @@ func TestShorterURL(t *testing.T) {
 	}
 
 	// Вызываем метод статистики
-	resultStats, err := server.Stats(ctx, &emptypb.Empty{})
+	resultStats, _ := server.Stats(ctx, &emptypb.Empty{})
 	if resultStats.CountURL != 1 {
 		t.Errorf("expected CountURL = %d, got %d", 1, resultStats.CountURL)
 	}
