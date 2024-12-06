@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 // Секретный ключ для подписи токена.
@@ -19,7 +19,6 @@ func GenerateToken(userUID string) (string, error) {
 	// Подписываем токен.
 	return token.SignedString(secretKey)
 }
-
 
 // ExtractUserUID извлекает userUID из переданного токена.
 func ExtractUserUID(tokenString string) (string, error) {

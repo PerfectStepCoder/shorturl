@@ -37,7 +37,7 @@ func main() {
 	}
 
 	defer mainStorage.Close()
-	
+
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", appSettings.ServiceNetAddress.Port))
 	if err != nil {
 		logger.Fatal(err)
@@ -51,7 +51,7 @@ func main() {
 	// Создаём цепочку перехватчиков (порядок следования важен)
 	unaryInterceptors := grpc_middleware.ChainUnaryServer(
 		UnaryInterceptorTrustedSubnet(ignoredMethods, appSettings.TrustedSubnet),
-		UnaryInterceptorAuth(ignoredMethods),                        
+		UnaryInterceptorAuth(ignoredMethods),
 	)
 
 	// Cоздаём gRPC-сервер без зарегистрированной службы
@@ -87,7 +87,7 @@ func main() {
 
 // Функция для graceful shutdown
 func gracefulStop(server *grpc.Server) {
-	
+
 	// Завершаем сервер с ожиданием завершения текущих запросов
 	server.GracefulStop()
 

@@ -2,12 +2,12 @@
 package config
 
 import (
-	"runtime"
-	"github.com/sirupsen/logrus"
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
+	"github.com/sirupsen/logrus"
+	"runtime"
 )
 
-func GetSettingsAndStorage(log *logrus.Logger, lengthShortURL int) (Settings, storage.PersistanceStorage, error){
+func GetSettingsAndStorage(log *logrus.Logger, lengthShortURL int) (Settings, storage.PersistanceStorage, error) {
 
 	appSettings := ParseFlags()
 

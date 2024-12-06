@@ -59,8 +59,8 @@ git fetch template && git checkout template/main .github
 
 > gofmt -l -s .
 > goimports -l .
+> /Users/dmitrii/go/bin/goimports -l .
 
-/Users/dmitrii/go/bin/goimports
 ### Проверка стуктурных тегов
 > go vet -structtag
 
@@ -122,3 +122,9 @@ go vet ./...      # проверка всех файлов в текущей д�
 Запуск клиента
 > cd ../cmd/grpc/client
 > go run send_data.go main.go
+
+### Настройка gateway
+В качестве шлюза используем Nginx, конфиг файл от которого находится в корневой папке: nginx.conf
+Сервисы работают на разных портах:
+- REST http (81)
+- gRPC (82)

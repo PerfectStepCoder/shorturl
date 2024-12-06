@@ -3,14 +3,14 @@ package handlers
 
 import (
 	"context"
-	"net/http"
-	"strings"
-	"time"
 	"errors"
-	"net"
 	"github.com/google/uuid"
 	"github.com/gorilla/securecookie"
 	"github.com/sirupsen/logrus"
+	"net"
+	"net/http"
+	"strings"
+	"time"
 )
 
 var (
@@ -221,8 +221,8 @@ func IsIPInCIDR(ip, cidr string) (bool, error) {
 
 // TrustedSubnet - проверка принадлежности IP адреса к доверенной подсети.
 func TrustedSubnet(h http.HandlerFunc, trustedSubnet string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) { 
-		
+	return func(w http.ResponseWriter, r *http.Request) {
+
 		// Проверка наличия trusted_subnet
 		if trustedSubnet == "" {
 			http.Error(w, "Forbidden", http.StatusForbidden)
@@ -244,4 +244,5 @@ func TrustedSubnet(h http.HandlerFunc, trustedSubnet string) http.HandlerFunc {
 		}
 
 		h.ServeHTTP(w, r)
-}}
+	}
+}

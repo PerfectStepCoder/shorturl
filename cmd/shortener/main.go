@@ -38,7 +38,7 @@ const (
 )
 
 func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Logger, inputCh chan []string, someStorage storage.PersistanceStorage) error {
-	
+
 	// Middlewares
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.WithLogging(next.ServeHTTP, logger)
@@ -52,7 +52,7 @@ func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Log
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.TrustedSubnet(next.ServeHTTP, appSettings.TrustedSubnet)
 	})
-	
+
 	if appSettings.AddProfileRoute {
 		// Регистрируем pprof маршрут
 		routes.Mount("/debug/pprof/", http.DefaultServeMux)
@@ -111,7 +111,7 @@ func main() {
 	defer logFile.Close()
 
 	appSettings, mainStorage, errConfig := config.GetSettingsAndStorage(logger, lengthShortURL)
-	
+
 	if errConfig != nil {
 		log.Fatal("No work without correct config!")
 	}
