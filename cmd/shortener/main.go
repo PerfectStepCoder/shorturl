@@ -38,6 +38,7 @@ const (
 )
 
 func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Logger, inputCh chan []string, someStorage storage.PersistanceStorage) error {
+	
 	// Middlewares
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.WithLogging(next.ServeHTTP, logger)
@@ -48,7 +49,10 @@ func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Log
 	routes.Use(func(next http.Handler) http.Handler {
 		return hdl.CheckSignedCookie(next.ServeHTTP)
 	})
-
+	routes.Use(func(next http.Handler) http.Handler {
+		return hdl.TrustedSubnet(next.ServeHTTP, appSettings.TrustedSubnet)
+	})
+	
 	if appSettings.AddProfileRoute {
 		// Регистрируем pprof маршрут
 		routes.Mount("/debug/pprof/", http.DefaultServeMux)
@@ -61,7 +65,7 @@ func initRoutes(routes *chi.Mux, appSettings config.Settings, logger *logrus.Log
 	routes.Post("/api/shorten", hdl.ObjectShorterURL(someStorage, appSettings.BaseURL))
 	routes.Post("/api/shorten/batch", hdl.ObjectsShorterURL(someStorage, appSettings.BaseURL))
 	routes.Get("/ping", hdl.PingDatabase(appSettings.DatabaseDSN))
-	routes.Get("/api/internal/stats", hdl.ShorterStats(someStorage, appSettings.TrustedSubnet))
+	routes.Get("/api/internal/stats", hdl.ShorterStats(someStorage))
 
 	return nil
 }
@@ -106,10 +110,10 @@ func main() {
 	var logger, logFile = config.GetLogger()
 	defer logFile.Close()
 
-	appSettings, mainStorage, errConfig := config.SetupServerSettings(logger, lengthShortURL)
+	appSettings, mainStorage, errConfig := config.GetSettingsAndStorage(logger, lengthShortURL)
 	
 	if errConfig != nil {
-		panic("No work without correct config!")
+		log.Fatal("No work without correct config!")
 	}
 
 	defer mainStorage.Close()
@@ -117,7 +121,7 @@ func main() {
 	routes := chi.NewRouter()
 	initRoutes(routes, appSettings, logger, inputCh, mainStorage) // инициализация маршрутов
 
-	fmt.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
+	logger.Printf("Service is starting host: %s on port: %d\n", appSettings.ServiceNetAddress.Host,
 		appSettings.ServiceNetAddress.Port)
 
 	go func() {
@@ -126,12 +130,12 @@ func main() {
 			// Путь к сертификату и ключу
 			keyFile, errServerKey := filepath.Abs("./tls_keys/server.key")
 			if errServerKey != nil {
-				fmt.Println("Ошибка получения абсолютного пути к ключу:", errServerKey)
+				logger.Println("Error to get abs path to ssl key:", errServerKey)
 				return
 			}
 			certFile, errServerCrt := filepath.Abs("./tls_keys/server.crt")
 			if errServerCrt != nil {
-				fmt.Println("Ошибка получения абсолютного пути к сертификату:", errServerCrt)
+				logger.Println("Error to get abs path to sertificate:", errServerCrt)
 				return
 			}
 			err = http.ListenAndServeTLS(fmt.Sprintf(`%s:443`, appSettings.ServiceNetAddress.Host), certFile, keyFile, routes)
@@ -140,7 +144,7 @@ func main() {
 				appSettings.ServiceNetAddress.Port), routes)
 		}
 		if err != nil {
-			log.Printf("error: %s", err)
+			logger.Printf("error: %s", err)
 		}
 	}()
 
@@ -152,17 +156,17 @@ func main() {
 		done <- true
 	}()
 
-	log.Printf("Server is running...")
-	log.Printf(`%s:%d`, appSettings.ServiceNetAddress.Host, appSettings.ServiceNetAddress.Port)
+	logger.Printf("Server is running...")
+	logger.Printf(`%s:%d`, appSettings.ServiceNetAddress.Host, appSettings.ServiceNetAddress.Port)
 
 	// Ожидание сигнала завершения
 	<-done
-	log.Println("Shutting down server...")
+	logger.Println("Shutting down server...")
 	close(inputCh)
 
 	if appSettings.DatabaseDSN == "" {
 		// Save
 		saved := mainStorage.SaveData(appSettings.FileStoragePath)
-		log.Printf("Saved: %d recordes to file: %s\n", saved, appSettings.FileStoragePath)
+		logger.Printf("Saved: %d recordes to file: %s\n", saved, appSettings.FileStoragePath)
 	}
 }

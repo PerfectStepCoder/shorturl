@@ -55,8 +55,8 @@ type Settings struct {
 // Метод String для структуры Settings
 func (s Settings) String() string {
 	return fmt.Sprintf(
-		"Settings:\n\tServiceNetAddress: %s\n\tBaseURL: %s\n\tFileStoragePath: %s\n\tDatabaseDSN: %s\n\tConfigNameFile: %s\n\tSaveDBtoFile: %v\n\tAddProfileRoute: %v\n\tEnableTSL: %v",
-		s.ServiceNetAddress, s.BaseURL, s.FileStoragePath, s.DatabaseDSN, s.ConfigNameFile, s.SaveDBtoFile, s.AddProfileRoute, s.EnableTSL,
+		"Settings:\n\tServiceNetAddress: %s\n\tBaseURL: %s\n\tFileStoragePath: %s\n\tDatabaseDSN: %s\n\tConfigNameFile: %s\n\tSaveDBtoFile: %v\n\tAddProfileRoute: %v\n\tEnableTSL: %v\n\tTrustedSubnet: %v",
+		s.ServiceNetAddress, s.BaseURL, s.FileStoragePath, s.DatabaseDSN, s.ConfigNameFile, s.SaveDBtoFile, s.AddProfileRoute, s.EnableTSL, s.TrustedSubnet,
 	)
 }
 

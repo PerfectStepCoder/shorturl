@@ -105,16 +105,20 @@ go vet ./...      # проверка всех файлов в текущей д�
 ### Запрос для проверки IP принандлежность к подсети
 > curl -H "X-Real-IP: 192.168.0.5" http://localhost:8080/api/internal/stats
 
+### Запуск сервиса
+> cd ../cmd/shortener
+> go run main.go
+
 ### Go доступность в консоле
 > export PATH="$PATH:$(go env GOPATH)/bin"
 
 ## GRPC
 Кодогенерация
+> cd ../internal/proto
 > protoc --go_out=./gen --go_opt=paths=source_relative --go-grpc_out=./gen --go-grpc_opt=paths=source_relative models.proto server.proto
 Запуск сервиса
-> cd ./grps
-> go run server.go interceptions.go auth.go main.go
-
+> cd ../cmd/grpc
+> go run server.go interceptions.go auth.go main.go -t "192.168.0.0/24"
 Запуск клиента
-> cd ./grps/client
+> cd ../cmd/grpc/client
 > go run send_data.go main.go

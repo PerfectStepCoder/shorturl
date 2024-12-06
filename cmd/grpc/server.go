@@ -21,14 +21,16 @@ type ShorterServerGRPC struct {
 func (s *ShorterServerGRPC) ShorterURL(ctx context.Context, in *pb.RequestFullURL) (*pb.ResponseShortURL, error) {
     var response pb.ResponseShortURL
     var userUID string
+    var md metadata.MD 
+    var ok bool
     
-    if md, ok := metadata.FromIncomingContext(ctx); ok {
-        values := md.Get("userUID")
-        if len(values) > 0 {
-            userUID = values[0]
-        }
-    } else {
+    if md, ok = metadata.FromIncomingContext(ctx); !ok {
         return &response, status.Errorf(codes.Internal, `We didnot catch userUID`)
+    }
+
+    values := md.Get("userUID")
+    if len(values) > 0 {
+        userUID = values[0]
     }
 
 	shortURL, err := s.mainStorage.Save(in.Url, userUID)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	pb "github.com/PerfectStepCoder/shorturl/internal/proto/gen"
@@ -25,7 +24,7 @@ func ParseError(err error) {
                 log.Println(e.Code(), e.Message())
         }
     } else {
-        log.Printf("Не получилось распарсить ошибку %v", err)
+        log.Printf("Problem with parsing of error: %v", err)
     }
 }
 
@@ -40,9 +39,13 @@ func TestURLs(c pb.ShorterClient) {
         { Url: faker.URL()},
     }
 
+    // X-Real-IP
+    md := metadata.New(map[string]string{"X-Real-IP":  "192.168.0.5"})
+    ctx := metadata.NewOutgoingContext(context.Background(), md)
+
     // Авторизация
     randomUID := uuid.New().String()
-    token, err := c.Login(context.Background(), &pb.RequestLogin{
+    token, err := c.Login(ctx, &pb.RequestLogin{
         UserUID: randomUID,
     }) 
     if err != nil {
@@ -51,10 +54,10 @@ func TestURLs(c pb.ShorterClient) {
     }
 
     // Авторизованные запросы к сервису
-    md := metadata.New(map[string]string{"token":  token.Jwt})
-    ctx := metadata.NewOutgoingContext(context.Background(), md)
+    md.Append("token", token.Jwt)
+    ctx = metadata.NewOutgoingContext(context.Background(), md)
 
-    fmt.Println(token)
+    log.Println(token)
 
     for _, url := range urls {
         resp, err := c.ShorterURL(ctx, url)

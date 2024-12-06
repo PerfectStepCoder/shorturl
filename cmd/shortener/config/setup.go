@@ -7,7 +7,7 @@ import (
 	"github.com/PerfectStepCoder/shorturl/internal/storage"
 )
 
-func SetupServerSettings(log *logrus.Logger, lengthShortURL int) (Settings, storage.PersistanceStorage, error){
+func GetSettingsAndStorage(log *logrus.Logger, lengthShortURL int) (Settings, storage.PersistanceStorage, error){
 
 	appSettings := ParseFlags()
 
