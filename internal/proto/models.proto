@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package shorter;
+
+option go_package = "demo/shorter";
+
+// RequestFullURL - передача полной ссылке для обработки.
+message RequestFullURL {
+  string url = 1;
+}
+
+// ResponseShortURL - возвращаемая короткая ссылка.
+message ResponseShortURL {
+	string result = 1;
+}
+
+// RequestLogin - передача userUID
+message RequestLogin {
+  string userUID = 1;
+}
+
+// ResponseJWT - возвращаемый токен JWT.
+message ResponseJWT {
+	string jwt = 1;
+}
+
+// ResponseStats - возвращаем статистику.
+message ResponseStats {
+	int32 countURL = 1;
+  int32 countUsers = 2;
+}

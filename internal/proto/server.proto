@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "models.proto";
+import "google/protobuf/empty.proto";
+
+package shorter;
+
+option go_package = "demo/shorter";
+
+service Shorter {
+  rpc ShorterURL(RequestFullURL) returns (ResponseShortURL);
+  rpc Login(RequestLogin) returns (ResponseJWT);
+  rpc Stats(google.protobuf.Empty) returns (ResponseStats);
+}

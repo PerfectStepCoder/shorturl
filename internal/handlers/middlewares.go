@@ -3,13 +3,14 @@ package handlers
 
 import (
 	"context"
-	"net/http"
-	"strings"
-	"time"
-
+	"errors"
 	"github.com/google/uuid"
 	"github.com/gorilla/securecookie"
 	"github.com/sirupsen/logrus"
+	"net"
+	"net/http"
+	"strings"
+	"time"
 )
 
 var (
@@ -200,5 +201,48 @@ func Auth(h http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 		}
+	}
+}
+
+// IsIPInCIDR проверяет, входит ли IP в подсеть
+func IsIPInCIDR(ip, cidr string) (bool, error) {
+	_, subnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return false, err
+	}
+
+	clientIP := net.ParseIP(ip)
+	if clientIP == nil {
+		return false, errors.New("invalid IP address")
+	}
+
+	return subnet.Contains(clientIP), nil
+}
+
+// TrustedSubnet - проверка принадлежности IP адреса к доверенной подсети.
+func TrustedSubnet(h http.HandlerFunc, trustedSubnet string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		// Проверка наличия trusted_subnet
+		if trustedSubnet == "" {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		// Получение IP из заголовка X-Real-IP
+		clientIP := r.Header.Get("X-Real-IP")
+		if clientIP == "" {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		// Проверка, входит ли IP в доверенную подсеть
+		isAllowed, err := IsIPInCIDR(clientIP, trustedSubnet)
+		if err != nil || !isAllowed {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		h.ServeHTTP(w, r)
 	}
 }
